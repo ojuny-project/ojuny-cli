@@ -1,7 +1,7 @@
 patches_install_one() {
     local id="$1"
     local stack="${2:-}"
-    local dest meta patch repos count repo dep
+    local dest meta patch repos count repo dep candidate legacy legacy_count
 
     if ! patches_id_valid "$id"; then
         ojuny_err "invalid patch id: $id"
@@ -16,8 +16,32 @@ patches_install_one() {
     esac
 
     dest="$(ojuny_patch_dir)/$id.nix"
+
+    legacy=""
+    legacy_count=0
+    for candidate in "$(ojuny_patch_dir)"/[0-9][0-9]-"$id".nix; do
+        [ -e "$candidate" ] || continue
+        legacy="$candidate"
+        legacy_count=$((legacy_count + 1))
+    done
+
     if [ -f "$dest" ]; then
+        if [ "$legacy_count" -gt 0 ]; then
+            ojuny_err "conflict: both $dest and legacy $legacy exist; remove the legacy file first"
+            return "$OJUNY_EXIT_CONFLICT"
+        fi
         printf 'already installed: %s\n' "$id"
+        return 0
+    fi
+
+    if [ "$legacy_count" -gt 1 ]; then
+        ojuny_err "conflict: multiple legacy files for $id in $(ojuny_patch_dir); remove all but one"
+        return "$OJUNY_EXIT_CONFLICT"
+    fi
+
+    if [ "$legacy_count" -eq 1 ]; then
+        mv -- "$legacy" "$dest"
+        printf 'upgraded legacy patch %s -> %s\n' "$legacy" "$dest"
         return 0
     fi
 
