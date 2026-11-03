@@ -5,7 +5,7 @@ display_subtree() {
         mmsg get all-monitors
         ;;
     resolution | toggle | sleep)
-        ojuny_err "display $1 is a persistent setting; use 'ojuny settings open display'"
+        ojuny_err "display $1 is a persistent setting; use 'ojuny settings open displays'"
         return "$OJUNY_EXIT_VALIDATION"
         ;;
     *)

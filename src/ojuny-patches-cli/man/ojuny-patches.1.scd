@@ -82,18 +82,18 @@ modules/patches/<id>.nix
 <id>/metadata.md
 ```
 
-The ID is the non-pretified name, for example *patch-development-tools*. IDs
+The ID is the non-pretified name, for example *patch-development*. IDs
 use lowercase letters, digits, and single dashes. The installed file is copied
 to *<local_repository>/<patch_directory>/<id>.nix*.
 
 Metadata is Markdown with simple *key: value* lines:
 
 ```
-name: Development Tools
-id: patch-development-tools
-description: Editors and development tools
-dependencies: patch-base
-version: 1
+name: Development
+id: patch-development
+description: VSCodium, per-language LSP toggles, optional coding agents, the dmenu project picker with devshell actions, and multi-repository project scaffolding
+dependencies:
+version: 4
 ```
 
 *dependencies* is a comma-separated list of patch IDs. Dependencies are not
@@ -122,9 +122,9 @@ versioned.
 ojuny-patches repo list
 ojuny-patches sync
 ojuny-patches list available
-ojuny-patches install patch-development-tools
-ojuny-patches info patch-development-tools
-ojuny-patches --yes remove patch-development-tools
+ojuny-patches install patch-development
+ojuny-patches info patch-development
+ojuny-patches --yes remove patch-development
 ```
 
 # SEE ALSO

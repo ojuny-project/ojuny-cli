@@ -108,7 +108,7 @@ assert_contains "$log" "dms:ipc call bar reveal id caelestia"
 
 assert_contains "$("$OJUNY_PATCHES_BIN" --help)" "Usage: ojuny-patches"
 assert_contains "$("$OJUNY_PATCHES_BIN" --version)" "ojuny-patches"
-assert_contains "$("$OJUNY_PATCHES_BIN" repo list)" "https://github.com/SDG-Den/ojuny-patches"
+assert_contains "$("$OJUNY_PATCHES_BIN" repo list)" "https://github.com/ojuny-project/ojuny-patches"
 
 flake="$tmp/flake"
 registry="$tmp/registry"

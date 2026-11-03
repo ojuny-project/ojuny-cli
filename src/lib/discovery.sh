@@ -1,4 +1,4 @@
-OJUNY_DEFAULT_PATCH_REPO="https://github.com/SDG-Den/ojuny-patches"
+OJUNY_DEFAULT_PATCH_REPO="https://github.com/ojuny-project/ojuny-patches"
 
 ojuny_flake_root() {
     local cfg root

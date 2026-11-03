@@ -6,7 +6,7 @@ Options:
   --flake <path>   Use this flake
   --host <name>    Use this host
   --yes            Do not prompt
-  --dry-run        Print instead of changing state
+  --dry-run        Accepted for commands that support it
   -h, --help       Show help
   -V, --version    Show version
 

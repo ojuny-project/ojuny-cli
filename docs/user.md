@@ -11,7 +11,7 @@ Most commands are runtime only. A reload or rebuild may discard the change.
 Use the settings GUI for persistent values:
 
 ```sh
-ojuny settings open display
+ojuny settings open displays
 ojuny settings open bar
 ojuny settings open network
 ```

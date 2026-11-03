@@ -39,11 +39,11 @@ The defaults are `$HOME/repos/nix-flake` and `modules/patches`.
 Metadata is Markdown with simple `key: value` lines:
 
 ```
-name: Development Tools
-id: patch-development-tools
-description: Editors and development tools
-dependencies: patch-base, patch-runtime
-version: 1
+name: Development
+id: patch-development
+description: VSCodium, per-language LSP toggles, optional coding agents, the dmenu project picker with devshell actions, and multi-repository project scaffolding
+dependencies:
+version: 4
 ```
 
 `dependencies` is a comma-separated list of patch IDs. Dependencies are checked
