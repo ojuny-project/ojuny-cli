@@ -6,9 +6,9 @@ on:
 
 jobs:
   cli-reference:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: cachix/install-nix-action@v30
         with:
           extra_nix_config: |
@@ -20,9 +20,9 @@ jobs:
 
   docs:
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Check links
         uses: lycheeverse/lychee-action@v2
         with:

@@ -47,6 +47,24 @@ $ man ojuny
 
 `man ojuny` opens the page built from `src/ojuny-cli/man/ojuny.1.scd`. If it reports no manual entry, check that `$XDG_DATA_DIRS` includes the profile that holds the package.
 
+## Releases
+
+A `v*` tag, a manual workflow run, or a commit on `main` whose title starts with
+a version such as `v0.1.0` builds `ojuny-cli.bin`, `ojuny-patches.bin`, and
+`ojuny-cli-flake.tar.gz`.
+
+The release flake installs the prebuilt bundles without compiling:
+
+```nix
+inputs.ojuny-cli.url =
+  "tarball+https://github.com/ojuny-project/ojuny-cli/releases/download/vX.Y.Z/ojuny-cli-flake.tar.gz";
+```
+
+Add `inputs.ojuny-cli.packages.${pkgs.system}.ojuny-cli` and
+`inputs.ojuny-cli.packages.${pkgs.system}.ojuny-patches` to
+`environment.systemPackages`.
+
+
 ## Usage
 
 ```console
