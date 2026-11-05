@@ -1,0 +1,23 @@
+{
+  "repo": "ojuny-project/ojuny-cli",
+  "system": "x86_64-linux",
+  "latest": "v0.1.0-hotfix-1",
+  "releases": {
+    "v0.1.0-hotfix-1": {
+      "tag": "v0.1.0-hotfix-1",
+      "version": "0.1.0-hotfix-1",
+      "packages": {
+        "ojuny-cli": {
+          "file": "ojuny-cli.bin",
+          "url": "https://github.com/ojuny-project/ojuny-cli/releases/download/v0.1.0-hotfix-1/ojuny-cli.bin",
+          "hash": "sha256-CQdagwphavArIrbTfq8JcnSR38DeLUCsMrPbeuZPH0E="
+        },
+        "ojuny-patches": {
+          "file": "ojuny-patches.bin",
+          "url": "https://github.com/ojuny-project/ojuny-cli/releases/download/v0.1.0-hotfix-1/ojuny-patches.bin",
+          "hash": "sha256-uWUiraydueP2gjj/c3R1ESksTXKBRHQ4AE01QXKuQGA="
+        }
+      }
+    }
+  }
+}

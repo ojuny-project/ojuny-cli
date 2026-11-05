@@ -12,8 +12,38 @@
 
   outputs =
     inputs@{ flake-parts, nixpkgs, ... }:
+    let
+      binaryInfo =
+        if builtins.pathExists ./binary-url.json
+        then builtins.fromJSON (builtins.readFile ./binary-url.json)
+        else null;
+
+      mkBinary = {
+        system,
+        tag ? (if binaryInfo == null then throw "ojuny-cli: binary-url.json is missing" else binaryInfo.latest),
+        package,
+      }: let
+        release =
+          if binaryInfo == null
+          then throw "ojuny-cli: binary-url.json is missing"
+          else binaryInfo.releases.${tag} or (throw "ojuny-cli: release '${tag}' is not recorded in binary-url.json");
+        packageInfo = release.packages.${package} or (throw "ojuny-cli: package '${package}' is not recorded in release '${tag}'");
+        pkgs = nixpkgs.legacyPackages.${system};
+      in
+        pkgs.callPackage ./nix/binary.nix {
+          name = package;
+          inherit (packageInfo) file;
+          info = {
+            inherit (binaryInfo) repo system;
+            inherit (release) tag version;
+            inherit (packageInfo) url hash;
+          };
+        };
+    in
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = nixpkgs.lib.systems.flakeExposed;
+
+      flake.lib.mkBinary = mkBinary;
 
       perSystem =
         { pkgs, ... }:
@@ -86,7 +116,10 @@
           packages = {
             inherit ojuny-cli ojuny-patches-cli;
             default = ojuny-cli;
-          };
+          } // (if binaryInfo != null && binaryInfo.system == pkgs.stdenv.hostPlatform.system then {
+            ojuny-cli-binary = mkBinary {system = pkgs.stdenv.hostPlatform.system; package = "ojuny-cli";};
+            ojuny-patches-binary = mkBinary {system = pkgs.stdenv.hostPlatform.system; package = "ojuny-patches";};
+          } else {});
 
           apps = {
             ojuny = {
