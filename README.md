@@ -4,7 +4,7 @@ Status: incomplete and untested. Applies to commit `bd216aa`, 2026-10-31. The in
 
 ## Purpose
 
-`ojuny-cli` builds two command line programs for a NixOS desktop running Dux Shell and MangoWM. `ojuny` maps short commands to the tools that own each feature, including mmsg, NetworkManager, BlueZ, PipeWire, playerctl, WireGuard, systemd, and Nix. `ojuny-patches` manages git repositories that contain optional Nix modules called patches.
+`ojuny-cli` builds two command line programs for a NixOS desktop running Dux Modular Shell and MangoWM. `ojuny` maps short commands to the tools that own each feature, including mmsg, NetworkManager, BlueZ, PipeWire, playerctl, WireGuard, systemd, and Nix. `ojuny-patches` manages git repositories that contain optional Nix modules called patches.
 
 ## Status
 
@@ -20,7 +20,7 @@ is missing, the reference and the man page are the accurate record.
 
 - Linux.
 - Nix with flakes enabled, to install from the flake.
-- A running Dux Shell session for the categories that control the shell, such as window, workspace, bar, and dock.
+- A running Dux Modular Shell session for the categories that control the shell, such as window, workspace, bar, and dock.
 - NixOS for `ojuny flake activate-boot` and `ojuny flake activate-now`, which call `nixos-rebuild`.
 - `git` for `ojuny-patches`, which clones patch repositories.
 - Power and session commands call `systemctl` and `loginctl`, so polkit may ask for authentication. Do not run them from a root shell.
@@ -104,4 +104,4 @@ Report bugs at <https://github.com/ojuny-project/ojuny-cli/issues>. A change mus
 
 ## License
 
-GNU General Public License, version 3 or later. See `LICENSE`. mmsg, Dux Shell, NetworkManager, BlueZ, PipeWire, playerctl, WireGuard, systemd, and Nix are separate upstream projects under their own licenses.
+GNU General Public License, version 3 or later. See `LICENSE`. mmsg, Dux Modular Shell, NetworkManager, BlueZ, PipeWire, playerctl, WireGuard, systemd, and Nix are separate upstream projects under their own licenses.

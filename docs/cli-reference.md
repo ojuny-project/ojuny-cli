@@ -53,7 +53,7 @@ nix shell .#ojuny-cli -c ojuny --help
 | `vpn` | WireGuard |
 | `run` | Launch an application |
 | `dispatch` | Raw mmsg dispatch |
-| `dux` | Dux Shell IPC and lifecycle (alias: dms) |
+| `dux` | Dux Modular Shell IPC and lifecycle (aliases: dms, shell) |
 | `capture` | Screenshots and recording |
 | `clipboard` | Clipboard |
 | `notepad` | Notepad |
@@ -156,7 +156,7 @@ Diagnostics
 
 ### `ojuny dux`
 
-Dux Shell IPC and lifecycle (alias: dms)
+Dux Modular Shell IPC and lifecycle (aliases: dms, shell)
 
 | Command | Description |
 | --- | --- |

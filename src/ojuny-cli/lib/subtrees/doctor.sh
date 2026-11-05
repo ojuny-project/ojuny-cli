@@ -33,7 +33,7 @@ doctor_subtree() {
     fi
 
     if [ -d "$legacy_config" ]; then
-        printf 'legacy: config %s exists; Dux Shell now uses %s\n' "$legacy_config" "$dux_config"
+        printf 'legacy: config %s exists; Dux Modular Shell now uses %s\n' "$legacy_config" "$dux_config"
     fi
 
     for command in mmsg dms nmcli bluetoothctl wpctl playerctl wg wg-quick nix git jq; do

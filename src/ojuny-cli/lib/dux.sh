@@ -1,7 +1,3 @@
-dux_deprecation_warning() {
-    ojuny_err "warning: 'ojuny dms' is deprecated; use 'ojuny dux'"
-}
-
 dux_call() {
     local object="$1"
     local method="$2"

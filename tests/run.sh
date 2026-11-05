@@ -65,6 +65,7 @@ ojuny_cli() {
 
 assert_contains "$(ojuny_cli --help)" "Usage: ojuny"
 assert_contains "$(ojuny_cli --help)" "dux"
+assert_contains "$(ojuny_cli --help)" "shell"
 assert_contains "$(ojuny_cli --version)" "ojuny"
 assert_contains "$(ojuny_cli network --help)" "Usage: ojuny network"
 assert_contains "$(ojuny_cli dux --help)" "Usage: ojuny dux"
@@ -72,8 +73,9 @@ assert_status 2 ojuny_cli unknown-category
 
 ojuny_cli dux status
 dms_alias_stderr="$(ojuny_cli dms status 2>&1 >/dev/null)"
-assert_contains "$dms_alias_stderr" "deprecated"
+[ -z "$dms_alias_stderr" ] || fail "dms alias printed a warning"
 assert_contains "$(cat "$TEST_LOG")" "dms:--version"
+ojuny_cli shell status
 
 ojuny_cli window float
 ojuny_cli window maximize

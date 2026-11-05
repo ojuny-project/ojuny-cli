@@ -76,11 +76,7 @@ spotlight | spot) spotlight_subtree "$@" ;;
 vpn) vpn_subtree "$@" ;;
 run) run_subtree "$@" ;;
 dispatch) dispatch_subtree "$@" ;;
-dux) dux_subtree "$@" ;;
-dms)
-    dux_deprecation_warning
-    dux_subtree "$@"
-    ;;
+dux | dms | shell) dux_subtree "$@" ;;
 capture | shot) capture_subtree "$@" ;;
 clipboard | clip) clipboard_subtree "$@" ;;
 notepad | notes) notepad_subtree "$@" ;;
