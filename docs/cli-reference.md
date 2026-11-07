@@ -64,7 +64,7 @@ nix shell .#ojuny-cli -c ojuny --help
 | `keymode` | Mango keymode |
 | `trackpad` | Trackpad control |
 | `dispatch` | Raw Mango dispatch |
-| `dux` | Dux shell lifecycle and IPC |
+| `dux` | Dux Modular Shell lifecycle and IPC |
 | `dashboard` | Dashboard tabs |
 | `island` | Island controls |
 | `spotlight` | Spotlight |
@@ -194,7 +194,7 @@ Raw Mango dispatch
 
 ### `ojuny dux`
 
-Dux shell lifecycle and IPC
+Dux Modular Shell lifecycle and IPC
 
 | Command | Usage | Description |
 | --- | --- | --- |

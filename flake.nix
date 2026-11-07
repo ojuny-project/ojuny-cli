@@ -51,7 +51,10 @@
         };
     in
     flake-parts.lib.mkFlake { inherit inputs; } {
-      systems = nixpkgs.lib.systems.flakeExposed;
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+      ];
 
       flake = {
         hydraJobs = self.checks;

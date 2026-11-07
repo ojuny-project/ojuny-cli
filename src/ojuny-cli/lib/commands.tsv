@@ -48,7 +48,7 @@ cmd	trackpad.on	trackpad_on	on	Enable the trackpad if needed	runtime	mmsg	-	-	-	
 cmd	trackpad.off	trackpad_off	off	Disable the trackpad if needed	runtime	mmsg	-	-	-	0	0
 cmd	trackpad.toggle	trackpad_toggle	toggle	Toggle the trackpad	runtime	mmsg	-	-	-	0	0
 cat	dispatch	dispatch_subtree	-	Raw Mango dispatch	runtime	mmsg	-	-	-	0	0
-cat	dux	dux_subtree	-	Dux shell lifecycle and IPC	runtime	dms	-	-	dms,shell	0	0
+cat	dux	dux_subtree	-	Dux Modular Shell lifecycle and IPC	runtime	dms	-	-	dms,shell	0	0
 cmd	dux.status	dux_status	status	Show DMS version	runtime	dms	-	-	-	1	0
 cmd	dux.start	dux_start	start	Start DMS	runtime	dms	-	-	-	0	0
 cmd	dux.stop	dux_stop	stop	Stop DMS	runtime	dms	-	-	-	0	1
