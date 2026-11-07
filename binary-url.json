@@ -10,12 +10,14 @@
         "ojuny-cli": {
           "file": "ojuny-cli.bin",
           "url": "https://github.com/ojuny-project/ojuny-cli/releases/download/v0.1.0-hotfix-1/ojuny-cli.bin",
-          "hash": "sha256-CQdagwphavArIrbTfq8JcnSR38DeLUCsMrPbeuZPH0E="
+          "hash": "sha256-CQdagwphavArIrbTfq8JcnSR38DeLUCsMrPbeuZPH0E=",
+          "program": "ojuny"
         },
         "ojuny-patches": {
           "file": "ojuny-patches.bin",
           "url": "https://github.com/ojuny-project/ojuny-cli/releases/download/v0.1.0-hotfix-1/ojuny-patches.bin",
-          "hash": "sha256-uWUiraydueP2gjj/c3R1ESksTXKBRHQ4AE01QXKuQGA="
+          "hash": "sha256-uWUiraydueP2gjj/c3R1ESksTXKBRHQ4AE01QXKuQGA=",
+          "program": "ojuny-patches"
         }
       }
     }

@@ -13,6 +13,8 @@
   version ? "0.1.0",
   sharedLib ? null,
   runtimeInputs ? [ ],
+  completions ? false,
+  postInstall ? "",
 }:
 
 let
@@ -22,7 +24,12 @@ let
 in
 
 stdenvNoCC.mkDerivation {
-  inherit pname src version;
+  inherit
+    pname
+    src
+    version
+    postInstall
+    ;
 
   nativeBuildInputs = [ scdoc ];
 
@@ -38,6 +45,21 @@ stdenvNoCC.mkDerivation {
 
     install -d "$out/share/man/man1"
     scdoc < ${src}/man/${program}.1.scd > "$out/share/man/man1/${program}.1"
+
+    ${lib.optionalString completions ''
+      install -d "$out/share/bash-completion/completions"
+      install -d "$out/share/zsh/site-functions"
+      install -d "$out/share/fish/vendor_completions.d"
+      OJUNY_LIB_DIR="$out/share/${pname}/lib" OJUNY_VERSION="${version}" \
+        ${bash}/bin/bash "$out/libexec/${program}" completions bash \
+        > "$out/share/bash-completion/completions/${program}"
+      OJUNY_LIB_DIR="$out/share/${pname}/lib" OJUNY_VERSION="${version}" \
+        ${bash}/bin/bash "$out/libexec/${program}" completions zsh \
+        > "$out/share/zsh/site-functions/_${program}"
+      OJUNY_LIB_DIR="$out/share/${pname}/lib" OJUNY_VERSION="${version}" \
+        ${bash}/bin/bash "$out/libexec/${program}" completions fish \
+        > "$out/share/fish/vendor_completions.d/${program}.fish"
+    ''}
 
     install -d "$out/bin"
     cat > "$out/bin/${program}" <<EOF

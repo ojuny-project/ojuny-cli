@@ -1,27 +1,32 @@
+dashboard_toggle() {
+    dux_call dash toggle
+}
+
+dashboard_open() {
+    if [ "$#" -lt 1 ]; then
+        ojuny_usage_error "usage: ojuny dashboard open <tab>"
+        return "$OJUNY_EXIT_USAGE"
+    fi
+    dux_dashboard_open "$1"
+}
+
+dashboard_close() {
+    dux_dashboard_close
+}
+
 dashboard_subtree() {
     local command="${1:-}"
     shift || true
 
     case "$command" in
-    open)
-        if [ "$#" -lt 1 ]; then
-            ojuny_err "usage: ojuny dashboard open <tab>"
-            return "$OJUNY_EXIT_USAGE"
-        fi
-        dux_dashboard_open "$1"
-        ;;
-    close)
-        dux_dashboard_close
-        ;;
-    toggle)
-        if [ "$#" -lt 1 ]; then
-            ojuny_err "usage: ojuny dashboard toggle <tab>"
-            return "$OJUNY_EXIT_USAGE"
-        fi
-        dux_dashboard_toggle "$1"
+    toggle) dashboard_toggle ;;
+    open) dashboard_open "$@" ;;
+    close) dashboard_close ;;
+    "")
+        dashboard_toggle
         ;;
     *)
-        ojuny_err "usage: ojuny dashboard <open|close|toggle>"
+        ojuny_usage_error "usage: ojuny dashboard <toggle|open|close>"
         return "$OJUNY_EXIT_USAGE"
         ;;
     esac

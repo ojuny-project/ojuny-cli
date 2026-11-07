@@ -1,0 +1,246 @@
+# kind	path	handler	usage	summary	class	backend	flags	completion	aliases	default	destructive
+cat	bar	bar_subtree	-	Bar visibility	runtime	dms	-	-	-	0	0
+cmd	bar.toggle	bar_toggle	toggle	Toggle the bar	runtime	dms	-	-	-	1	0
+cmd	bar.show	bar_show	show	Show the bar	runtime	dms	-	-	-	0	0
+cmd	bar.hide	bar_hide	hide	Hide the bar	runtime	dms	-	-	-	0	0
+cat	dock	dock_subtree	-	Dock state and visibility	runtime	dms	-	-	-	0	0
+cmd	dock.status	dock_status	status	Show dock state	runtime	dms	-	-	-	1	0
+cmd	dock.toggle	dock_toggle	toggle	Toggle the dock	runtime	dms	-	-	-	0	0
+cmd	dock.autohide	dock_autohide	[on|off|toggle]	Set or toggle dock autohide	runtime	dms	-	-	-	0	0
+cat	layout	layout_subtree	-	Layout control	runtime	mmsg	-	-	-	0	0
+cmd	layout.set	layout_set	<layout> [variant]	Set the active layout	runtime	mmsg	-	-	-	0	0
+cmd	layout.current	layout_current	current	Show the active layout	read	mmsg	-	-	-	1	0
+cat	window	window_subtree	-	Window control	runtime	mmsg	-	-	-	0	0
+cmd	window.list	window_list	list	List clients	runtime	mmsg	-	-	-	1	0
+cmd	window.kill	window_kill	kill	Kill the focused client	runtime	mmsg	-	-	-	0	1
+cmd	window.focus	window_focus	<direction>	Focus in a direction	runtime	mmsg	-	-	-	0	0
+cmd	window.move	window_move	<direction>	Move the client in a direction	runtime	mmsg	-	-	-	0	0
+cmd	window.exchange	window_exchange	<direction>	Exchange the client with a neighbor	runtime	mmsg	-	-	-	0	0
+cmd	window.resize	window_resize	<direction>	Resize the client	runtime	mmsg	-	-	-	0	0
+cmd	window.fullscreen	window_fullscreen	fullscreen	Toggle fullscreen	runtime	mmsg	-	-	-	0	0
+cmd	window.maximize	window_maximize	maximize	Toggle maximize	runtime	mmsg	-	-	-	0	0
+cmd	window.float	window_float	float	Toggle floating	runtime	mmsg	-	-	-	0	0
+cmd	window.float-all	window_float_all	float-all	Toggle floating for all clients	runtime	mmsg	-	-	-	0	0
+cmd	window.minimize	window_minimize	minimize	Minimize the focused client	runtime	mmsg	-	-	-	0	0
+cmd	window.restore	window_restore	restore	Restore minimized clients	runtime	mmsg	-	-	-	0	0
+cmd	window.pin	window_pin	pin	Toggle pin	runtime	mmsg	-	-	-	0	0
+cmd	window.overlay	window_overlay	overlay	Toggle overlay	runtime	mmsg	-	-	-	0	0
+cmd	window.detail	window_detail	detail	Show client details	runtime	mmsg	-	-	-	0	0
+cmd	window.tag-special	window_tag_special	tag-special	Tag the client as special	runtime	mmsg	-	-	-	0	0
+cmd	window.toggle-special	window_toggle_special	toggle-special	Toggle the special tag	runtime	mmsg	-	-	-	0	0
+cmd	window.group-leave	window_group_leave	group-leave	Leave the window group	runtime	mmsg	-	-	-	0	0
+cmd	window.overview	window_overview	overview	Toggle the overview	runtime	mmsg	-	-	-	0	0
+cat	workspace	workspace_subtree	-	Workspace control	runtime	mmsg	-	-	-	0	0
+cmd	workspace.current	workspace_current	current	Show the active workspace	read	mmsg	-	-	-	1	0
+cmd	workspace.view	workspace_view	<id>	View a workspace	runtime	mmsg	-	-	-	0	0
+cmd	workspace.toggle	workspace_toggle	<id>	Toggle a workspace	runtime	mmsg	-	-	-	0	0
+cmd	workspace.move	workspace_move	<id>	Move the client to a workspace	runtime	mmsg	-	-	-	0	0
+cmd	workspace.next	workspace_next	next	View the next workspace	runtime	mmsg	-	-	-	0	0
+cmd	workspace.previous	workspace_previous	previous	View the previous workspace	runtime	mmsg	-	-	-	0	0
+cmd	workspace.next-client	workspace_next_client	next-client	View the next workspace with a client	runtime	mmsg	-	-	-	0	0
+cmd	workspace.previous-client	workspace_previous_client	previous-client	View the previous workspace with a client	runtime	mmsg	-	-	-	0	0
+cat	keymode	keymode_subtree	-	Mango keymode	runtime	mmsg	-	-	-	0	0
+cmd	keymode.get	keymode_get	get	Show the current keymode	read	mmsg	-	-	-	1	0
+cmd	keymode.set	keymode_set	<mode>	Set the keymode	runtime	mmsg	-	-	-	0	0
+cat	trackpad	trackpad_subtree	-	Trackpad control	runtime	mmsg	-	-	-	0	0
+cmd	trackpad.status	trackpad_status	status	Show trackpad state and devices	read	mmsg	-	-	-	1	0
+cmd	trackpad.on	trackpad_on	on	Enable the trackpad if needed	runtime	mmsg	-	-	-	0	0
+cmd	trackpad.off	trackpad_off	off	Disable the trackpad if needed	runtime	mmsg	-	-	-	0	0
+cmd	trackpad.toggle	trackpad_toggle	toggle	Toggle the trackpad	runtime	mmsg	-	-	-	0	0
+cat	dispatch	dispatch_subtree	-	Raw Mango dispatch	runtime	mmsg	-	-	-	0	0
+cat	dux	dux_subtree	-	Dux shell lifecycle and IPC	runtime	dms	-	-	dms,shell	0	0
+cmd	dux.status	dux_status	status	Show DMS version	runtime	dms	-	-	-	1	0
+cmd	dux.start	dux_start	start	Start DMS	runtime	dms	-	-	-	0	0
+cmd	dux.stop	dux_stop	stop	Stop DMS	runtime	dms	-	-	-	0	1
+cmd	dux.restart	dux_restart	restart	Restart DMS	runtime	dms	-	-	-	0	1
+cmd	dux.ipc	dux_ipc	<arguments>	Send a raw DMS IPC call	runtime	dms	-	-	-	0	0
+cat	dashboard	dashboard_subtree	-	Dashboard tabs	runtime	dms	-	-	-	0	0
+cmd	dashboard.toggle	dashboard_toggle	toggle	Toggle the dashboard	runtime	dms	-	-	-	1	0
+cmd	dashboard.open	dashboard_open	<tab>	Open a dashboard tab	runtime	dms	-	-	-	0	0
+cmd	dashboard.close	dashboard_close	close	Close the dashboard	runtime	dms	-	-	-	0	0
+cat	island	island_subtree	-	Island controls	runtime	dms	-	-	-	0	0
+cmd	island.status	island_status	status	Show island state	read	dms	-	-	-	1	0
+cmd	island.open	island_open	<activity>	Open an island activity	runtime	dms	-	-	-	0	0
+cmd	island.show	island_show	<activity>	Show an island activity	runtime	dms	-	-	-	0	0
+cmd	island.cycle	island_cycle	cycle	Cycle island activities	runtime	dms	-	-	-	0	0
+cmd	island.move	island_move	<x> <y>	Move the island	runtime	dms	-	-	-	0	0
+cmd	island.center	island_center	<x> <y>	Center the island	runtime	dms	-	-	-	0	0
+cat	spotlight	spotlight_subtree	-	Spotlight	runtime	dms	-	-	-	0	0
+cmd	spotlight.toggle	spotlight_toggle	toggle	Toggle spotlight	runtime	dms	-	-	-	1	0
+cmd	spotlight.open	spotlight_open	open	Open spotlight	runtime	dms	-	-	-	0	0
+cmd	spotlight.close	spotlight_close	close	Close spotlight	runtime	dms	-	-	-	0	0
+cmd	spotlight.query	spotlight_query	<text>	Open spotlight with a query	runtime	dms	-	-	-	0	0
+cat	toggle	toggle_subtree	-	Runtime toggles	runtime	dms	-	-	-	0	0
+cmd	toggle.list	toggle_list	list	Show toggle states	read	dms	-	-	-	1	0
+cmd	toggle.night	toggle_night	[on|off|toggle]	Toggle night mode	runtime	dms	-	-	-	0	0
+cmd	toggle.idle	toggle_idle	[on|off|toggle]	Toggle idle inhibit	runtime	dms	-	-	-	0	0
+cmd	toggle.dnd	toggle_dnd	[on|off|toggle]	Toggle do not disturb	runtime	dms	-	-	-	0	0
+cmd	toggle.lockscreen	toggle_lockscreen	lockscreen	Lock the session	session	loginctl	-	-	-	0	0
+cmd	toggle.screensaver	toggle_screensaver	screensaver	Lock the session	session	loginctl	-	-	-	0	0
+cat	clipboard	clipboard_subtree	-	Clipboard	runtime	dms	-	-	-	0	0
+cmd	clipboard.open	clipboard_open	open	Open the clipboard panel	runtime	dms	-	-	-	1	0
+cmd	clipboard.clear	clipboard_clear	clear	Clear clipboard history	runtime	dms	-	-	-	0	1
+cmd	clipboard.echo	clipboard_echo	echo	Print the current clipboard	read	dms	-	-	-	0	0
+cmd	clipboard.copy	clipboard_copy	<text>	Copy text to the clipboard	runtime	dms	-	-	-	0	0
+cmd	clipboard.history	clipboard_history	history	List clipboard history	read	dms	-	-	-	0	0
+cmd	clipboard.search	clipboard_search	<text>	Search clipboard history	read	dms	-	-	-	0	0
+cat	notepad	notepad_subtree	-	Notepad	runtime	dms	-	-	-	0	0
+cmd	notepad.open	notepad_open	open	Open notepad	runtime	dms	-	-	-	1	0
+cmd	notepad.toggle	notepad_toggle	toggle	Toggle notepad	runtime	dms	-	-	-	0	0
+cat	keybinds	keybinds_subtree	-	Keybind viewer	read	dms	-	-	-	0	0
+cmd	keybinds.open	keybinds_open	open	Open the keybind viewer	read	dms	-	-	-	1	0
+cmd	keybinds.list	keybinds_list	list	List keybind providers	read	dms	-	-	-	0	0
+cmd	keybinds.show	keybinds_show	<provider>	Show binds for a provider	read	dms	-	-	-	0	0
+cat	capture	capture_subtree	-	Screenshots and recording	runtime	dms	-	-	-	0	0
+cmd	capture.menu	capture_menu	menu	Open the screenshot menu	runtime	dms	-	-	-	1	0
+cmd	capture.region	capture_region	region	Capture a region	runtime	dms	-	-	-	0	0
+cmd	capture.full	capture_full	full	Capture the focused output	runtime	dms	-	-	-	0	0
+cmd	capture.window	capture_window	window	Capture the focused window	runtime	dms	-	-	-	0	0
+cmd	capture.scroll	capture_scroll	scroll	Capture a scrolling region	runtime	dms	-	-	-	0	0
+cmd	capture.text	capture_text	text	Capture a region and copy OCR text	runtime	tesseract	-	-	-	0	0
+cmd	capture.qr	capture_qr	qr	Capture a region and copy a QR payload	runtime	zbar	-	-	-	0	0
+cmd	capture.edit	capture_edit	[target]	Edit a capture with satty	runtime	satty	-	-	-	0	0
+cmd	capture.toolbar	capture_toolbar	toolbar	Toggle the capture toolbar	runtime	dms	-	-	-	0	0
+cat	sound	sound_subtree	-	Audio devices and volume	runtime	wpctl	-	-	-	0	0
+cmd	sound.current	sound_current	current	Show current audio state	read	wpctl	-	-	-	1	0
+cmd	sound.list	sound_list	[inputs|outputs]	List audio devices	read	wpctl	-	-	-	0	0
+cmd	sound.input	sound_input	<id>	Set the default input	runtime	wpctl	-	-	-	0	0
+cmd	sound.output	sound_output	<id>	Set the default output	runtime	wpctl	-	-	-	0	0
+cmd	sound.volume	sound_volume	<value>	Set output volume	runtime	wpctl	-	-	-	0	0
+cmd	sound.micvolume	sound_micvolume	<value>	Set microphone volume	runtime	wpctl	-	-	-	0	0
+cmd	sound.mute	sound_mute	[on|off|toggle]	Mute or unmute output	runtime	wpctl	-	-	-	0	0
+cmd	sound.micmute	sound_micmute	[on|off|toggle]	Mute or unmute input	runtime	wpctl	-	-	-	0	0
+cat	media	media_subtree	-	Media playback	runtime	playerctl	-	-	-	0	0
+cmd	media.status	media_status	status	Show playback status	read	playerctl	-	-	-	1	0
+cmd	media.play	media_play	play	Play	runtime	playerctl	-	-	-	0	0
+cmd	media.pause	media_pause	pause	Pause	runtime	playerctl	-	-	-	0	0
+cmd	media.play-pause	media_play_pause	play-pause	Toggle playback	runtime	playerctl	-	-	-	0	0
+cmd	media.next	media_next	next	Next track	runtime	playerctl	-	-	-	0	0
+cmd	media.previous	media_previous	previous	Previous track	runtime	playerctl	-	-	-	0	0
+cmd	media.stop	media_stop	stop	Stop playback	runtime	playerctl	-	-	-	0	0
+cmd	media.volume	media_volume	<value>	Set player volume	runtime	playerctl	-	-	-	0	0
+cat	display	display_subtree	-	Display and brightness	read	dms	-	-	-	0	0
+cmd	display.list	display_list	list	List outputs	read	dms	-	-	-	1	0
+cmd	display.current	display_current	current	Show current output state	read	dms	-	-	-	0	0
+cmd	display.brightness	display_brightness	[get|set <value>|up|down]	Get or set brightness	runtime	dms	-	-	-	0	0
+cat	network	network_subtree	-	NetworkManager control	runtime	nmcli	-	-	-	0	0
+cmd	network.status	network_status	status	Show NetworkManager status	read	nmcli	-	-	-	1	0
+cmd	network.list	network_list	list	List network devices	read	nmcli	-	-	-	0	0
+cmd	network.connect	network_connect	<name>	Activate a connection	runtime	nmcli	-	-	-	0	0
+cmd	network.disconnect	network_disconnect	<device>	Disconnect a device	runtime	nmcli	-	-	-	0	0
+cmd	network.enable	network_enable	enable	Enable networking	runtime	nmcli	-	-	-	0	0
+cmd	network.disable	network_disable	disable	Disable networking	runtime	nmcli	-	-	-	0	0
+cat	wifi	wifi_subtree	-	Wi-Fi control	runtime	nmcli	-	-	-	0	0
+cmd	wifi.status	wifi_status	status	Show Wi-Fi status	read	nmcli	-	-	-	1	0
+cmd	wifi.list	wifi_list	list	List visible networks	read	nmcli	-	-	-	0	0
+cmd	wifi.scan	wifi_scan	scan	Rescan for networks	runtime	nmcli	-	-	-	0	0
+cmd	wifi.connect	wifi_connect	<ssid> [password]	Connect to a network	runtime	nmcli	-	-	-	0	0
+cmd	wifi.disconnect	wifi_disconnect	disconnect	Disconnect the Wi-Fi device	runtime	nmcli	-	-	-	0	0
+cmd	wifi.enable	wifi_enable	enable	Enable Wi-Fi	runtime	nmcli	-	-	-	0	0
+cmd	wifi.disable	wifi_disable	disable	Disable Wi-Fi	runtime	nmcli	-	-	-	0	0
+cat	modem	modem_subtree	-	Mobile broadband	runtime	mmcli	-	-	-	0	0
+cmd	modem.status	modem_status	[modem]	Show modem status	read	mmcli	-	-	-	1	0
+cmd	modem.list	modem_list	list	List modems	read	mmcli	-	-	-	0	0
+cmd	modem.enable	modem_enable	<modem>	Enable a modem	runtime	mmcli	-	-	-	0	0
+cmd	modem.disable	modem_disable	<modem>	Disable a modem	runtime	mmcli	-	-	-	0	0
+cmd	modem.connect	modem_connect	<modem> <apn>	Connect a modem	runtime	mmcli	-	-	-	0	0
+cmd	modem.disconnect	modem_disconnect	<modem>	Disconnect a modem	runtime	mmcli	-	-	-	0	0
+cat	bluetooth	bluetooth_subtree	-	Bluetooth	runtime	bluetoothctl	-	-	-	0	0
+cmd	bluetooth.status	bluetooth_status	status	Show adapter status	read	bluetoothctl	-	-	-	1	0
+cmd	bluetooth.list	bluetooth_list	list	List known devices	read	bluetoothctl	-	-	-	0	0
+cmd	bluetooth.scan	bluetooth_scan	[on|off]	Start or stop scanning	runtime	bluetoothctl	-	-	-	0	0
+cmd	bluetooth.power	bluetooth_power	[on|off]	Set adapter power	runtime	bluetoothctl	-	-	-	0	0
+cmd	bluetooth.pair	bluetooth_pair	<mac>	Pair a device	runtime	bluetoothctl	-	-	-	0	0
+cmd	bluetooth.connect	bluetooth_connect	<mac>	Connect a device	runtime	bluetoothctl	-	-	-	0	0
+cmd	bluetooth.disconnect	bluetooth_disconnect	<mac>	Disconnect a device	runtime	bluetoothctl	-	-	-	0	0
+cmd	bluetooth.trust	bluetooth_trust	<mac>	Trust a device	runtime	bluetoothctl	-	-	-	0	0
+cmd	bluetooth.remove	bluetooth_remove	<mac>	Remove a device	runtime	bluetoothctl	-	-	-	0	1
+cat	radio	radio_subtree	-	Radio kill state	runtime	rfkill	-	-	-	0	0
+cmd	radio.list	radio_list	list	List radios	read	rfkill	-	-	-	1	0
+cmd	radio.wifi	radio_wifi	[on|off]	Block or unblock Wi-Fi	runtime	rfkill	-	-	-	0	0
+cmd	radio.bluetooth	radio_bluetooth	[on|off]	Block or unblock Bluetooth	runtime	rfkill	-	-	-	0	0
+cat	vpn	vpn_subtree	-	VPN profiles	runtime	nmcli	-	-	-	0	0
+cmd	vpn.status	vpn_status	status	Show active VPNs	read	nmcli	-	-	-	1	0
+cmd	vpn.list	vpn_list	list	List VPN profiles	read	nmcli	-	-	-	0	0
+cmd	vpn.up	vpn_up	<name>	Activate a VPN profile	runtime	nmcli	-	-	-	0	0
+cmd	vpn.down	vpn_down	<name>	Deactivate a VPN profile	runtime	nmcli	-	-	-	0	0
+cmd	vpn.import	vpn_import	<file>	Copy a profile into the watch directory	runtime	install	-	-	-	0	0
+cat	disk	disk_subtree	-	Removable storage	runtime	udisksctl	-	-	-	0	0
+cmd	disk.list	disk_list	list	List block devices	read	lsblk	-	-	-	1	0
+cmd	disk.mount	disk_mount	<device>	Mount a device	runtime	udisksctl	-	-	-	0	0
+cmd	disk.unmount	disk_unmount	<device>	Unmount a device	runtime	udisksctl	-	-	-	0	0
+cmd	disk.eject	disk_eject	<device>	Power off a device	runtime	udisksctl	-	-	-	0	1
+cat	system	system_subtree	-	Power and session actions	session	systemd	-	-	-	0	0
+cmd	system.status	system_status	status	System summary	read	systemd	-	-	-	1	0
+cmd	system.battery	system_battery	battery	Battery status	read	upower	-	-	-	0	0
+cmd	system.lock	system_lock	lock	Lock the session	session	loginctl	-	-	-	0	0
+cmd	system.logout	system_logout	logout	Log out the session	session	loginctl	-	-	-	0	1
+cmd	system.suspend	system_suspend	suspend	Suspend the system	session	systemctl	-	-	-	0	0
+cmd	system.hibernate	system_hibernate	hibernate	Hibernate the system	session	systemctl	-	-	-	0	0
+cmd	system.reboot	system_reboot	reboot	Reboot the system	session	systemctl	-	-	-	0	1
+cmd	system.shutdown	system_shutdown	shutdown	Power off the system	session	systemctl	-	-	-	0	1
+cat	input	input_subtree	-	Synthetic input	runtime	wtype	-	-	-	0	0
+cmd	input.type	input_type	<text>	Type text	runtime	wtype	-	-	-	0	0
+cmd	input.key	input_key	<combo>	Press a key combination	runtime	wtype	-	-	-	0	0
+cmd	input.click	input_click	[left|right|middle]	Click a mouse button	runtime	ydotool	-	-	-	0	0
+cmd	input.move	input_move	<x> <y>	Move the pointer	runtime	ydotool	-	-	-	0	0
+cmd	input.scroll	input_scroll	<up|down|left|right> [amount]	Scroll	runtime	ydotool	-	-	-	0	0
+cat	run	run_subtree	-	Launch an application	runtime	mmsg	-	-	-	0	0
+cat	flake	flake_subtree	-	Flake and system management	persistent	nix	-	-	-	0	0
+cmd	flake.status	flake_status	status	Show flake context	read	nix	-	-	-	1	0
+cmd	flake.update	flake_update	<input>...	Update specific flake inputs	persistent	nix	-	inputs	-	0	0
+cmd	flake.validate	flake_validate	validate	Validate the flake and host	persistent	nix	-	-	-	0	0
+cmd	flake.build	flake_build	[--serial]	Build the host	persistent	nix	-	-	-	0	0
+cmd	flake.activate	flake_activate	[--boot|--now]	Activate the host	persistent	nix	-	-	-	0	1
+cmd	flake.rollback	flake_rollback	[generation]	Roll back to a generation	persistent	nix	-	generations	-	0	1
+cmd	flake.generations	flake_generations	generations	List system generations	read	nix	-	-	-	0	0
+cmd	flake.gc	flake_gc	[--dry-run]	Collect garbage	persistent	nix	-	-	-	0	1
+cmd	flake.option	flake_option	<path>	Show an option value	read	nixos-option	-	-	-	0	0
+cat	service	service_subtree	-	Systemd services	session	systemctl	-	-	-	0	0
+cmd	service.list	service_list	list	List services	session	systemctl	-	units	-	1	0
+cmd	service.status	service_status	<name>	Show service status	read	systemctl	-	units	-	0	0
+cmd	service.start	service_start	<name>	Start a service	session	systemctl	-	units	-	0	0
+cmd	service.stop	service_stop	<name>	Stop a service	session	systemctl	-	units	-	0	1
+cmd	service.restart	service_restart	<name>	Restart a service	session	systemctl	-	units	-	0	1
+cmd	service.reload	service_reload	<name>	Reload a service	session	systemctl	-	units	-	0	0
+cmd	service.enable	service_enable	<name>	Enable a service	session	systemctl	-	units	-	0	0
+cmd	service.disable	service_disable	<name>	Disable a service	session	systemctl	-	units	-	0	1
+cat	logs	logs_subtree	-	Journal logs	read	journalctl	-	units	-	0	0
+cat	secureboot	secureboot_subtree	-	Secure Boot keys and signing	session	sbctl	-	-	-	0	0
+cmd	secureboot.status	secureboot_status	status	Show Secure Boot status	read	sbctl	-	-	-	1	0
+cmd	secureboot.list	secureboot_list	list	List enrolled files	read	sbctl	-	-	-	0	0
+cmd	secureboot.verify	secureboot_verify	verify	Verify signatures	read	sbctl	-	-	-	0	0
+cmd	secureboot.sign	secureboot_sign	<file>	Sign a file	session	sbctl	-	-	-	0	0
+cmd	secureboot.sign-all	secureboot_sign_all	sign-all	Sign all enrolled files	session	sbctl	-	-	-	0	0
+cmd	secureboot.bundle	secureboot_bundle	bundle	Bundle EFI files	session	sbctl	-	-	-	0	0
+cmd	secureboot.enroll	secureboot_enroll	enroll	Enroll keys	session	sbctl	-	-	-	0	1
+cmd	secureboot.create-keys	secureboot_create_keys	create-keys	Create signing keys	session	sbctl	-	-	-	0	1
+cmd	secureboot.reset	secureboot_reset	reset	Reset Secure Boot keys	session	sbctl	-	-	-	0	1
+cat	doctor	doctor_subtree	-	Diagnostics	read	-	-	-	-	0	0
+cmd	doctor.check	doctor_check	check	Run the full diagnostic	read	-	-	-	-	1	0
+cmd	doctor.crashes	doctor_crashes	crashes	Show recent crashes	read	coredumpctl	-	-	-	0	0
+cmd	doctor.boot	doctor_boot	boot	Show boot timing	read	systemd-analyze	-	-	-	0	0
+cat	ipc	ipc_subtree	-	Local IPC bridge	runtime	socat	-	-	-	0	0
+cmd	ipc.path	ipc_path	path	Print the socket path	read	socat	-	-	-	0	0
+cmd	ipc.status	ipc_status	status	Show IPC service state	read	socat	-	-	-	1	0
+cmd	ipc.call	ipc_call	<method> [args...]	Call one IPC method	runtime	socat	-	methods	-	0	0
+cmd	ipc.watch	ipc_watch	<topic>	Stream IPC events	runtime	socat	-	topics	-	0	0
+cmd	ipc.serve	ipc_serve	serve	Run the IPC listener	runtime	socat	-	-	-	0	0
+cmd	ipc.session	ipc_session	session	Handle one IPC connection	runtime	socat	-	-	-	0	0
+cat	debug	debug_subtree	-	Debug logging	runtime	-	-	-	-	0	0
+cmd	debug.status	debug_status	status	Show debug logging state	read	-	-	-	-	1	0
+cmd	debug.on	debug_on	on	Enable debug logging	runtime	-	-	-	-	0	0
+cmd	debug.off	debug_off	off	Disable debug logging	runtime	-	-	-	-	0	0
+cmd	debug.tail	debug_tail	[--lines N]	Show recent debug lines	read	-	-	-	-	0	0
+cmd	debug.clear	debug_clear	clear	Clear the debug log	runtime	-	-	-	-	0	1
+top	status	cmd_status	-	System summary	read	-	-	-	-	0	0
+top	settings	settings_cmd	[page]	Open nix-settings-gui	persistent	nix-settings-gui	-	pages	-	1	0
+top	raw-settings	raw_settings_cmd	<page>	Edit the module for a settings page	persistent	editor	-	pages	-	0	0
+top	notify	notify_cmd	<summary> [body]	Send a desktop notification	runtime	dms	-	-	-	0	0
+top	print-agent-details	agents_cmd	-	Print the agent guide	read	-	-	-	-	0	0
+top	print-system-details	support_cmd	-	Print the support bundle	read	-	-	-	-	0	0
+top	crashes	crashes_cmd	[entry|latest]	List or read captured crashes	read	coredumpctl	-	-	-	0	0
+top	commands	catalog_cmd	-	Command catalog	read	-	-	-	-	1	0
+top	completions	completions_cmd	<shell>	Completion script	read	-	-	-	-	0	0
+top	help	help_cmd	[category] [command]	Help	read	-	-	-	-	0	0
+top	version	version_cmd	-	Version	read	-	-	-	-	0	0

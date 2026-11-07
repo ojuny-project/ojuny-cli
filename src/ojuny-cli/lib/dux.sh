@@ -33,7 +33,7 @@ dux_restart() {
 
 dux_status() {
     ojuny_require_command dms
-    dms --version
+    dms version
 }
 
 dux_screenshot() {

@@ -41,6 +41,7 @@
         in
         pkgs.callPackage ./nix/binary.nix {
           name = package;
+          program = packageInfo.program or package;
           inherit (packageInfo) file;
           info = {
             inherit (binaryInfo) repo system;
@@ -62,16 +63,28 @@
 
           ojuny-cli-check = pkgs.runCommand "check-ojuny-cli" { } ''
             export HOME="$(mktemp -d)"
-            ${ojuny-cli}/bin/ojuny --help | grep -q "Usage:"
-            ${ojuny-cli}/bin/ojuny --version | grep -q "ojuny"
+            help_file="$(mktemp)"
+            version_file="$(mktemp)"
+            ${ojuny-cli}/bin/ojuny --help > "$help_file"
+            ${ojuny-cli}/bin/ojuny --version > "$version_file"
+            grep -q "Usage:" "$help_file"
+            grep -q "ojuny" "$version_file"
             test -f ${ojuny-cli}/share/man/man1/ojuny.1.gz
+            test -f ${ojuny-cli}/share/bash-completion/completions/ojuny
+            test -f ${ojuny-cli}/share/zsh/site-functions/_ojuny
+            test -f ${ojuny-cli}/share/fish/vendor_completions.d/ojuny.fish
+            test -f ${ojuny-cli}/share/systemd/user/ojuny-ipc.service
             touch $out
           '';
 
           ojuny-patches-cli-check = pkgs.runCommand "check-ojuny-patches-cli" { } ''
             export HOME="$(mktemp -d)"
-            ${ojuny-patches-cli}/bin/ojuny-patches --help | grep -q "Usage:"
-            ${ojuny-patches-cli}/bin/ojuny-patches --version | grep -q "ojuny-patches"
+            help_file="$(mktemp)"
+            version_file="$(mktemp)"
+            ${ojuny-patches-cli}/bin/ojuny-patches --help > "$help_file"
+            ${ojuny-patches-cli}/bin/ojuny-patches --version > "$version_file"
+            grep -q "Usage:" "$help_file"
+            grep -q "ojuny-patches" "$version_file"
             test -f ${ojuny-patches-cli}/share/man/man1/ojuny-patches.1.gz
             touch $out
           '';
@@ -108,9 +121,13 @@
                 nativeBuildInputs = [
                   pkgs.bash
                   pkgs.coreutils
-                  pkgs.git
+                  pkgs.findutils
+                  pkgs.gawk
                   pkgs.gnugrep
+                  pkgs.gnused
+                  pkgs.git
                   pkgs.jq
+                  pkgs.procps
                 ];
               }
               ''
@@ -160,6 +177,16 @@
           checks = {
             ojuny-cli = ojuny-cli-check;
             ojuny-patches-cli = ojuny-patches-cli-check;
+            binary-programs =
+              pkgs.runCommand "check-binary-programs"
+                {
+                  nativeBuildInputs = [ pkgs.jq ];
+                }
+                ''
+                  jq -e '.releases[.latest].packages["ojuny-cli"].program == "ojuny"' ${./binary-url.json}
+                  jq -e '.releases[.latest].packages["ojuny-patches"].program == "ojuny-patches"' ${./binary-url.json}
+                  touch $out
+                '';
             inherit lint tests;
             default = ojuny-cli-check;
           };

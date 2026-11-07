@@ -41,18 +41,45 @@ EOF
     chmod +x "$tmp/bin/$name"
 }
 
-for name in mmsg dms nmcli bluetoothctl wpctl playerctl wg wg-quick systemctl loginctl; do
+for name in mmsg dms nmcli mmcli bluetoothctl wpctl playerctl rfkill \
+    udisksctl systemctl loginctl journalctl sbctl upower wtype ydotool \
+    nix-settings-gui ojuny-screenshot-menu ojuny-capture-text ojuny-capture-qr \
+    ojuny-screenshot-edit socat; do
     write_fake "$name"
 done
+
+cat >"$tmp/bin/coredumpctl" <<EOF
+#!$BASH
+printf '%s:%s\n' "coredumpctl" "\$*" >>"\$TEST_LOG"
+case "\$*" in
+    "list --json=short --no-pager")
+        printf '%s\n' '[{"time":1700000000000000,"pid":12345,"uid":1000,"gid":100,"sig":11,"corefile":"present","exe":"/usr/bin/fake-exe","size":1000}]'
+        ;;
+    "info --no-pager"*)
+        printf 'fake crash details\n'
+        ;;
+esac
+EOF
+chmod +x "$tmp/bin/coredumpctl"
 
 cat >"$tmp/bin/dms" <<EOF
 #!$BASH
 printf '%s:%s\n' "dms" "\$*" >>"\$TEST_LOG"
-if [ "\$*" = "ipc call settings get barConfigs" ]; then
-    printf '%s\n' '[{"id":"default","island":true},{"id":"taskbar","island":false},{"id":"status","island":false},{"id":"caelestia","island":false},{"id":"disabled","island":false,"enabled":false}]'
-fi
+case "\$*" in
+    --version) echo "dms test" ;;
+    version) echo "dms test" ;;
+    "clipboard paste") printf 'hello\n' ;;
+    "ipc call dock status") echo "hidden" ;;
+    "ipc call island status") echo '{"available":true,"enabled":true}' ;;
+esac
 EOF
 chmod +x "$tmp/bin/dms"
+
+cat >"$tmp/bin/systemctl" <<EOF
+#!$BASH
+printf '%s:%s\n' "systemctl" "\$*" >>"\$TEST_LOG"
+EOF
+chmod +x "$tmp/bin/systemctl"
 
 export PATH="$tmp/bin:$PATH"
 
@@ -64,49 +91,84 @@ ojuny_cli() {
 }
 
 assert_contains "$(ojuny_cli --help)" "Usage: ojuny"
-assert_contains "$(ojuny_cli --help)" "dux"
-assert_contains "$(ojuny_cli --help)" "shell"
+assert_contains "$(ojuny_cli --help)" "wifi"
+assert_contains "$(ojuny_cli --help)" "secureboot"
 assert_contains "$(ojuny_cli --version)" "ojuny"
-assert_contains "$(ojuny_cli network --help)" "Usage: ojuny network"
 assert_contains "$(ojuny_cli dux --help)" "Usage: ojuny dux"
+assert_contains "$(ojuny_cli settings --help)" "Open nix-settings-gui"
+
 assert_status 2 ojuny_cli unknown-category
+assert_status 2 ojuny_cli bar preset taskbar
+assert_status 2 ojuny_cli flake update
+assert_status 2 ojuny_cli display resolution
 
-ojuny_cli dux status
-dms_alias_stderr="$(ojuny_cli dms status 2>&1 >/dev/null)"
-[ -z "$dms_alias_stderr" ] || fail "dms alias printed a warning"
-assert_contains "$(cat "$TEST_LOG")" "dms:--version"
-ojuny_cli shell status
-
+ojuny_cli dux
+ojuny_cli keybinds
+ojuny_cli clipboard echo
 ojuny_cli window float
-ojuny_cli window maximize
 ojuny_cli workspace view 2
-ojuny_cli nw status
-ojuny_cli settings open network
-ojuny_cli capture full
-ojuny_cli session quit
-ojuny_cli system lock
+ojuny_cli wifi status
+ojuny_cli bluetooth status
+ojuny_cli service restart demo
 
 log="$(cat "$TEST_LOG")"
+assert_contains "$log" "dms:version"
+assert_contains "$log" "dms:ipc call keybinds open binds"
 assert_contains "$log" "mmsg:dispatch togglefloating"
-assert_contains "$log" "mmsg:dispatch togglemaximizescreen"
 assert_contains "$log" "mmsg:dispatch view,2"
-assert_contains "$log" "nmcli:general status"
-assert_contains "$log" "dms:ipc call settings focusOrToggleWith network"
-assert_contains "$log" "dms:screenshot full"
-assert_contains "$log" "mmsg:dispatch quit"
-assert_contains "$log" "loginctl:lock-session"
+assert_contains "$log" "systemctl:--user restart demo"
 
-ojuny_cli bar preset taskbar
-ojuny_cli bar preset caelestia
-assert_status 5 ojuny_cli bar preset default
-assert_status 5 ojuny_cli bar preset disabled
-assert_status 2 ojuny_cli bar preset nope
-log="$(cat "$TEST_LOG")"
-assert_contains "$log" "dms:ipc call settings set frameEnabled false"
-assert_contains "$log" "dms:ipc call settings set frameEnabled true"
-assert_contains "$log" "dms:ipc call bar hide id status"
-assert_contains "$log" "dms:ipc call bar reveal id taskbar"
-assert_contains "$log" "dms:ipc call bar reveal id caelestia"
+assert_contains "$(ojuny_cli clipboard echo)" "hello"
+
+json="$(ojuny_cli --json status)"
+printf '%s' "$json" | jq -e '.schema == 1 and .ok == true' >/dev/null ||
+    fail "status JSON is invalid: $json"
+
+catalog="$(ojuny_cli --json commands)"
+printf '%s' "$catalog" | jq -e '.data.commands | length > 100' >/dev/null ||
+    fail "command catalog is missing entries"
+
+assert_contains "$(ojuny_cli completions bash)" "complete -F _ojuny ojuny"
+assert_contains "$(ojuny_cli print-agent-details)" "sudo ojuny service restart"
+
+settings_out="$(ojuny_cli --dry-run settings bar 2>&1)"
+assert_contains "$settings_out" "nix-settings-gui --page bar"
+
+assert_status 5 ojuny_cli --system service restart demo
+
+mkdir -p "$tmp/vpn"
+printf '[Interface]\n' >"$tmp/work.conf"
+OJUNY_WIREGUARD_DIR="$tmp/vpn" ojuny_cli vpn import "$tmp/work.conf"
+[ -f "$tmp/vpn/work.conf" ] || fail "vpn import did not copy the profile"
+[ "$(stat -c %a "$tmp/vpn/work.conf")" = "600" ] || fail "vpn import did not use mode 600"
+
+export XDG_STATE_HOME="$tmp/state"
+ojuny_cli trackpad on
+ojuny_cli trackpad off
+ojuny_cli trackpad off
+trackpad_toggles="$(grep -c 'mmsg:dispatch toggle_trackpad_enable' "$TEST_LOG" || true)"
+[ "$trackpad_toggles" -eq 1 ] || fail "trackpad on/off did not toggle exactly once"
+
+assert_contains "$(ojuny_cli ipc path)" "ipc.sock"
+ipc_response="$(printf '%s\n' '{"schema":1,"id":"1","method":"status","args":[]}' | ojuny_cli ipc session)"
+assert_contains "$ipc_response" '"id":"1"'
+assert_contains "$ipc_response" '"ok":true'
+destructive_response="$(printf '%s\n' '{"schema":1,"id":"2","method":"system.reboot","args":[]}' | ojuny_cli ipc session)"
+assert_contains "$destructive_response" '"code":5'
+assert_contains "$destructive_response" 'requires confirm'
+
+assert_contains "$(ojuny_cli print-system-details)" "DE/WM:"
+assert_contains "$(ojuny_cli crashes)" "fake-exe"
+assert_contains "$(ojuny_cli crashes latest)" "fake crash details"
+assert_contains "$(ojuny_cli crashes 1)" "fake crash details"
+
+ojuny_cli debug on
+ojuny_cli --dry-run wifi connect mynet supersecret >/dev/null 2>&1
+assert_contains "$(ojuny_cli debug tail)" "[redacted]"
+if ojuny_cli debug tail | grep -q 'supersecret'; then
+    fail "debug log leaked a password"
+fi
+ojuny_cli debug off
 
 assert_contains "$("$OJUNY_PATCHES_BIN" --help)" "Usage: ojuny-patches"
 assert_contains "$("$OJUNY_PATCHES_BIN" --version)" "ojuny-patches"

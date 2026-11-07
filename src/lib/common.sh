@@ -43,8 +43,37 @@ ojuny_confirm() {
     esac
 }
 
-ojuny_is_dry_run() {
-    [ "${OJUNY_DRY_RUN:-0}" -eq 1 ]
+ojuny_exec() {
+    if command -v ojuny_debug_log >/dev/null 2>&1; then
+        ojuny_debug_log "exec: $(printf '%q ' "$@")"
+    fi
+
+    if ojuny_is_verbose; then
+        printf 'ojuny: exec:' >&2
+        printf ' %q' "$@" >&2
+        printf '\n' >&2
+    fi
+
+    if ojuny_is_dry_run; then
+        printf 'ojuny: dry-run:' >&2
+        printf ' %q' "$@" >&2
+        printf '\n' >&2
+        return 0
+    fi
+
+    "$@"
+}
+
+ojuny_exec_quiet() {
+    if command -v ojuny_debug_log >/dev/null 2>&1; then
+        ojuny_debug_log "exec: $(printf '%q ' "$@")"
+    fi
+
+    if ojuny_is_verbose || ojuny_is_dry_run; then
+        ojuny_exec "$@"
+        return
+    fi
+    "$@" >/dev/null
 }
 
 ojuny_print_version() {
@@ -75,4 +104,18 @@ ojuny_join_by() {
             printf '%s%s' "$separator" "$value"
         fi
     done
+}
+
+ojuny_sudo_hint() {
+    local action="$1"
+    printf '  hint: sudo ojuny %s\n' "$action" >&2
+}
+
+ojuny_require_root() {
+    local action="$1"
+    if [ "$(id -u)" -ne 0 ]; then
+        ojuny_err "permission denied for system scope"
+        ojuny_sudo_hint "$action"
+        return "$OJUNY_EXIT_VALIDATION"
+    fi
 }

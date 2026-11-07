@@ -4,94 +4,135 @@ set -euo pipefail
 : "${OJUNY_LIB_DIR:?OJUNY_LIB_DIR is not set; run ojuny from the packaged wrapper}"
 
 for module in "$OJUNY_LIB_DIR"/*.sh; do
+    # shellcheck source=/dev/null
     source "$module"
 done
 
 for module in "$OJUNY_LIB_DIR"/subtrees/*.sh; do
+    # shellcheck source=/dev/null
     source "$module"
 done
-
-OJUNY_YES="${OJUNY_YES:-0}"
-OJUNY_DRY_RUN="${OJUNY_DRY_RUN:-0}"
-OJUNY_FLAKE="${OJUNY_FLAKE:-}"
-OJUNY_HOST="${OJUNY_HOST:-}"
-
-if [ "$#" -eq 0 ]; then
-    ojuny_usage
-    exit 0
-fi
-
-case "$1" in
--h | --help)
-    ojuny_usage
-    exit 0
-    ;;
--V | --version)
-    ojuny_print_version
-    exit 0
-    ;;
-help)
-    shift
-    if [ "$#" -eq 0 ]; then
-        ojuny_usage
-        exit 0
-    fi
-    ojuny_category_help "$1"
-    exit $?
-    ;;
-esac
 
 ojuny_parse_global_options "$@"
 set -- "${OJUNY_ARGS[@]}"
 
-if [ "$#" -eq 0 ]; then
-    ojuny_usage
+OJUNY_CURRENT_COMMAND=""
+ojuny_on_exit() {
+    local rc="$1"
+    case "${OJUNY_CURRENT_COMMAND:-}" in
+    crashes | crashes.* | doctor | doctor.* | status | print-system-details | \
+        debug | debug.* | commands | help | completions | version | ipc | ipc.*)
+        return 0
+        ;;
+    esac
+    if [ "$rc" -ge "$OJUNY_EXIT_BACKEND" ] && command -v ojuny_record_crash >/dev/null 2>&1; then
+        ojuny_record_crash "${OJUNY_CURRENT_COMMAND:-unknown}" "$rc" "command failed" ""
+    fi
+}
+trap 'ojuny_on_exit $?' EXIT
+
+ojuny_run_command() {
+    local name="$1"
+    local handler="$2"
+    shift 2
+
+    if ojuny_is_json; then
+        local out status message hint errfile errtext
+        errfile="$(mktemp "${TMPDIR:-/tmp}/ojuny.XXXXXX")"
+        set +e
+        out="$("$handler" "$@" 2>"$errfile")"
+        status=$?
+        set -e
+        errtext="$(cat "$errfile" 2>/dev/null || true)"
+        message="$(printf '%s' "$out" | head -n 1)"
+        if [ -z "$message" ]; then
+            message="$(printf '%s' "$errtext" | head -n 1)"
+        fi
+        hint="$(printf '%s' "$errtext" | grep -E '^  hint:' | head -n 1 | sed 's/^  hint: //')" || hint=""
+        if [ -s "$errfile" ]; then
+            cat "$errfile" >&2
+        fi
+        rm -f "$errfile"
+
+        if [ "$status" -eq 0 ]; then
+            if ojuny_json_has_schema "$out"; then
+                printf '%s\n' "$out"
+            else
+                ojuny_json_ok "$name" "$out"
+            fi
+        else
+            [ -n "$message" ] || message="command failed"
+            ojuny_json_error "$name" "$status" "$message" "$hint"
+        fi
+        return "$status"
+    fi
+
+    "$handler" "$@"
+}
+
+if [ "$OJUNY_VERSION_FLAG" -eq 1 ]; then
+    ojuny_print_version
     exit 0
 fi
 
-category="$1"
-shift
+if [ "$#" -eq 0 ]; then
+    if [ "$OJUNY_HELP" -eq 1 ]; then
+        ojuny_help_usage
+    else
+        OJUNY_CURRENT_COMMAND="status"
+        ojuny_run_command status cmd_status
+    fi
+    exit 0
+fi
 
-if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ] || [ "${1:-}" = "help" ]; then
-    ojuny_category_help "$category"
+category="${1:-}"
+shift || true
+
+if [ "$category" = "help" ]; then
+    help_cmd "$@"
     exit $?
 fi
 
-case "$category" in
-bar) bar_subtree "$@" ;;
-dock) dock_subtree "$@" ;;
-layout | lay) layout_subtree "$@" ;;
-sound | audio) sound_subtree "$@" ;;
-network | nw | net) network_subtree "$@" ;;
-bluetooth | bt) bluetooth_subtree "$@" ;;
-window | win) window_subtree "$@" ;;
-workspace | ws) workspace_subtree "$@" ;;
-flake) flake_subtree "$@" ;;
-toggle | tgl) toggle_subtree "$@" ;;
-display | disp) display_subtree "$@" ;;
-media | music) media_subtree "$@" ;;
-dashboard | dash) dashboard_subtree "$@" ;;
-island) island_subtree "$@" ;;
-spotlight | spot) spotlight_subtree "$@" ;;
-vpn) vpn_subtree "$@" ;;
-run) run_subtree "$@" ;;
-dispatch) dispatch_subtree "$@" ;;
-dux | dms | shell) dux_subtree "$@" ;;
-capture | shot) capture_subtree "$@" ;;
-clipboard | clip) clipboard_subtree "$@" ;;
-notepad | notes) notepad_subtree "$@" ;;
-keybinds) keybinds_subtree "$@" ;;
-settings | set) settings_subtree "$@" ;;
-system | sys) system_subtree "$@" ;;
-session | sess) session_subtree "$@" ;;
-doctor) doctor_subtree "$@" ;;
-dot)
-    ojuny_err "dot is not available in DMS 1.7; enable it for DMS 2.0"
-    exit "$OJUNY_EXIT_USAGE"
-    ;;
-*)
+if [ "$category" = "__complete" ]; then
+    complete_cmd "$@"
+    exit $?
+fi
+
+if [ "$OJUNY_HELP" -eq 1 ]; then
+    if [ -n "$(ojuny_top_handler "$category")" ]; then
+        ojuny_help_top "$category"
+    elif [ "$#" -gt 0 ] && [ -n "$(ojuny_command_handler "$category" "$1")" ]; then
+        ojuny_help_command "$category" "$1"
+    else
+        ojuny_help_category "$category"
+    fi
+    exit $?
+fi
+
+top_handler="$(ojuny_top_handler "$category")"
+if [ -n "$top_handler" ]; then
+    OJUNY_CURRENT_COMMAND="$category"
+    ojuny_run_command "$category" "$top_handler" "$@"
+    exit $?
+fi
+
+canonical="$(ojuny_resolve_category "$category")"
+if [ -z "$canonical" ]; then
     ojuny_err "unknown category: $category"
-    ojuny_usage >&2
+    ojuny_help_usage >&2
     exit "$OJUNY_EXIT_USAGE"
-    ;;
-esac
+fi
+
+handler="$(ojuny_category_handler "$canonical")"
+if [ -z "$handler" ]; then
+    ojuny_err "category has no handler: $canonical"
+    exit "$OJUNY_EXIT_BACKEND"
+fi
+
+command_name="$canonical"
+if [ "$#" -gt 0 ] && [ "${1#-}" = "$1" ]; then
+    command_name="$canonical.$1"
+fi
+
+OJUNY_CURRENT_COMMAND="$command_name"
+ojuny_run_command "$command_name" "$handler" "$@"

@@ -35,7 +35,7 @@ patches_list_installed() {
     dir="$(ojuny_patch_dir)"
     [ -d "$dir" ] || return 0
 
-    for file in "$dir"/*.nix; do
+    for file in "$dir"/patch-*.nix; do
         [ -e "$file" ] || continue
         id="$(basename "$file" .nix)"
         name="$(patches_installed_name "$id")"

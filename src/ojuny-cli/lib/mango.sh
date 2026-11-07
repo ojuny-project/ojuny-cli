@@ -3,10 +3,10 @@ mdispatch() {
     shift
 
     if [ "$#" -eq 0 ]; then
-        mmsg dispatch "$dispatcher"
+        ojuny_exec_quiet mmsg dispatch "$dispatcher"
     else
         local IFS=,
-        mmsg dispatch "$dispatcher,$*"
+        ojuny_exec_quiet mmsg dispatch "$dispatcher,$*"
     fi
 }
 

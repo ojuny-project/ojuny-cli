@@ -1,29 +1,48 @@
 # ojuny-cli
 
-Status: incomplete and untested. Applies to commit `bd216aa`, 2026-10-31. The install and usage commands were not run for this rewrite.
+Status: core surface redesigned, not yet tested on a live session. The install,
+build, and runtime paths in this README have not been run for this revision.
 
 ## Purpose
 
-`ojuny-cli` builds two command line programs for a NixOS desktop running Dux Modular Shell and MangoWM. `ojuny` maps short commands to the tools that own each feature, including mmsg, NetworkManager, BlueZ, PipeWire, playerctl, WireGuard, systemd, and Nix. `ojuny-patches` manages git repositories that contain optional Nix modules called patches.
+`ojuny-cli` builds two command line programs for a NixOS desktop running Dux
+Modular Shell and MangoWM. `ojuny` is the single command for imperative
+management and status: network, Wi-Fi, modem, Bluetooth, VPN, audio, media,
+display, storage, services, Secure Boot, Nix, DMS, Mango, screenshots,
+notifications, and synthetic input. `ojuny-patches` manages git repositories
+that contain optional Nix modules called patches.
+
+`ojuny` is a wrapper. It does not store configuration and does not edit Nix
+files. Persistent values are changed through `ojuny settings` (nix-settings-gui)
+or `ojuny raw-settings` (the module behind a settings page).
 
 ## Status
 
 Both programs are version 0.1.0 and no tagged release exists. The flake checks
-build each program, run the test script, and verify the man page.
+build each program, run the test script, verify the man page, and verify the
+installed completion files.
 
-The CLI is incomplete. Parts of the designed command surface are not
-implemented, and commands may change. The generated reference covers what the
-binaries expose today, not the full design. If a command from an older document
-is missing, the reference and the man page are the accurate record.
+The core `ojuny` surface is implemented. Optional patch stacks such as flatpak,
+docker, libvirt, and development are out of scope and are not part of the core
+command set.
 
 ## Requirements
 
 - Linux.
 - Nix with flakes enabled, to install from the flake.
-- A running Dux Modular Shell session for the categories that control the shell, such as window, workspace, bar, and dock.
-- NixOS for `ojuny flake activate-boot` and `ojuny flake activate-now`, which call `nixos-rebuild`.
-- `git` for `ojuny-patches`, which clones patch repositories.
-- Power and session commands call `systemctl` and `loginctl`, so polkit may ask for authentication. Do not run them from a root shell.
+- A running Dux Modular Shell session for `bar`, `dock`, `dashboard`, `island`,
+  `spotlight`, `toggle`, `clipboard`, `notepad`, `keybinds`, `settings`, and
+  `capture` commands.
+- NixOS for `ojuny flake` and `ojuny secureboot`.
+- `git` for `ojuny-patches`.
+- NetworkManager, ModemManager, BlueZ, PipeWire/WirePlumber, playerctl,
+  udisks2, upower, systemd, sbctl, wtype, and ydotool for their categories.
+- `nix-settings-gui` on `PATH` for `ojuny settings`.
+- The ojuny screenshot helpers (`ojuny-screenshot-menu`, `ojuny-screenshot-edit`,
+  `ojuny-capture-text`, `ojuny-capture-qr`, `ojuny-capture-scroll`) on `PATH`
+  for the matching `ojuny capture` commands.
+- Power and session commands call `systemctl` and `loginctl`, so polkit may ask
+  for authentication.
 - Disk and memory use: not measured.
 
 ## Install
@@ -40,68 +59,134 @@ Check the version and the manual:
 ```console
 $ ojuny --version
 ojuny 0.1.0
-$ ojuny-patches --version
-ojuny-patches 0.1.0
 $ man ojuny
 ```
 
-`man ojuny` opens the page built from `src/ojuny-cli/man/ojuny.1.scd`. If it reports no manual entry, check that `$XDG_DATA_DIRS` includes the profile that holds the package.
-
-## Releases
-
-A `v*` tag, a manual workflow run, or a commit on `main` whose title starts with
-a version such as `v0.1.0` builds `ojuny-cli.bin`, `ojuny-patches.bin`, and
-`ojuny-cli-flake.tar.gz`.
-
-The release flake installs the prebuilt bundles without compiling:
-
-```nix
-inputs.ojuny-cli.url =
-  "tarball+https://github.com/ojuny-project/ojuny-cli/releases/download/vX.Y.Z/ojuny-cli-flake.tar.gz";
-```
-
-Add `inputs.ojuny-cli.packages.${pkgs.system}.ojuny-cli` and
-`inputs.ojuny-cli.packages.${pkgs.system}.ojuny-patches` to
-`environment.systemPackages`.
-
+The package installs completion for bash, zsh, and fish. The completion scripts
+are regenerated from the command table at build time.
 
 ## Usage
 
 ```console
-$ ojuny window float
+$ ojuny status
+$ ojuny wifi list
+$ ojuny vpn up work
+$ ojuny settings displays
 ```
 
-See [`docs/cli-reference.md`](docs/cli-reference.md) for every command, option,
-and category that the two binaries expose today. The man pages carry the same
-text: `man ojuny` and `man ojuny-patches`.
+Every command accepts `--help` and `--json`. A bare category runs its default,
+for example `ojuny dux` prints status, `ojuny keybinds` opens the viewer, and
+`ojuny vpn` prints VPN status.
+
+See `docs/cli-reference.md` for the generated category and command list. The man
+page carries the same surface.
+
+## Settings
+
+`ojuny settings` opens nix-settings-gui. `ojuny settings displays` opens the
+Displays page. The page argument is a regular expression.
+
+`ojuny raw-settings displays` finds the first module that declares the matching
+`@menu` and opens it in `$VISUAL`, then `$EDITOR`, then `nano`. It never opens
+more than one file.
+
+Persistent values belong in nix-settings-gui. The CLI does not write Nix files.
+
+## Services and logs
+
+`ojuny service` and `ojuny logs` use `systemctl --user` and `journalctl --user`
+unless the process runs as root. The CLI never calls `sudo`.
+
+To control system services, prefix the command:
+
+```console
+$ sudo ojuny service restart NetworkManager
+```
+
+The same rule applies to `ojuny secureboot` mutations and
+`ojuny flake activate`.
 
 ## Configuration and state
 
-Most `ojuny` commands change the running session only. Persistent values belong in the settings menu, for example `ojuny settings open bar`; a reload or rebuild may discard a runtime change. `ojuny flake` is the exception and changes the system through Nix. It reads the flake path from `--flake`, then `OJUNY_FLAKE`, then `~/.config/nix-settings-gui/config.json`, then the current Git root.
+The flake path is resolved from `--flake`, then `OJUNY_FLAKE`, then
+`~/.config/nix-settings-gui/config.json`, then the current Git root.
 
-`ojuny-patches` stores its repository list and settings under `$XDG_CONFIG_HOME/ojuny/` and its clones under `$XDG_CACHE_HOME/ojuny/patches`. `--dry-run` is accepted for the `ojuny` commands that support it.
+`ojuny vpn import` copies a `.conf` profile to the WireGuard watch directory:
+`--dir`, then `OJUNY_WIREGUARD_DIR`, then
+`ojuny.vpn.wireguard.directory`, then `~/.config/ojuny/wireguard`.
+NetworkManager imports the profile from there.
+
+`ojuny-patches` stores its repository list and settings under
+`$XDG_CONFIG_HOME/ojuny/` and its clones under `$XDG_CACHE_HOME/ojuny/patches`.
+
+## Output
+
+Human output uses aligned tables and color on a TTY. `NO_COLOR` and
+`CLICOLOR=0` disable color. `--json` emits one document on stdout with a stable
+envelope. `--quiet` prints only the primary value. `--verbose` prints the
+resolved backend argv to stderr. `--dry-run` prints the argv and does not run.
+
+Exit codes: 0 success, 2 usage, 3 missing dependency, 4 backend failure,
+5 validation failure, 6 conflict.
+
+## Diagnostics and IPC
+
+`ojuny print-system-details` prints a plaintext support bundle with the flake,
+host, kernel, hardware, DE/WM, session, backend versions, patch state, paths,
+debug tail, failed units, and a short journal tail. `ojuny crashes` lists
+system-wide coredumps from `coredumpctl`; `ojuny crashes latest` prints the
+newest entry and `ojuny crashes <entry>` prints plaintext details.
+
+`ojuny debug on|off|status|tail|clear` controls debug logging under
+`$XDG_STATE_HOME/ojuny/debug.log`. Secrets are redacted.
+
+`ojuny ipc` exposes a local Unix socket at
+`$XDG_RUNTIME_DIR/ojuny/ipc.sock` with newline-delimited JSON. `ojuny ipc call`
+runs one method, `ojuny ipc watch` streams topic events, and `ojuny ipc serve`
+runs the `socat` listener. The package installs
+`share/systemd/user/ojuny-ipc.service`; enable it with
+`systemctl --user enable --now ojuny-ipc.service`.
 
 ## Limits
 
-`ojuny` is a wrapper. It does not store configuration and does not edit Nix files.
+`ojuny` is a wrapper around the tools that own each feature. It does not
+implement its own network, audio, Bluetooth, or display stack.
 
-`ojuny-patches install` copies one module into the local flake. It does not enable the patch or rebuild the system; enable the patch in the settings GUI after installation. Dependencies are checked by file presence and are not versioned. A dependency cycle exits 6 and a missing dependency exits 5.
+`ojuny flake activate`, `ojuny flake gc`, `ojuny flake rollback`, and
+`ojuny secureboot` mutations require root. The CLI prints a sudo hint instead
+of escalating.
 
-Patches are Nix code evaluated with the privileges of the system configuration. Add only repositories you trust.
+`ojuny` does not manage flatpak, docker, container, or virtualisation state.
+Those belong to optional patches and stay outside the core surface.
+
+`ojuny` does not manage DMS plugins. Plugin management is declarative. Hardware
+support is `nixos-hardware`-driven and has no imperative CLI backend.
+
+`ojuny-patches install` copies one module into the local flake. It does not
+enable the patch or rebuild the system; enable the patch in the settings GUI
+after installation. Dependencies are checked by file presence and are not
+versioned. A dependency cycle exits 6 and a missing dependency exits 5.
+
+Patches are Nix code evaluated with the privileges of the system
+configuration. Add only repositories you trust.
 
 ## Documentation
 
-- [`docs/cli-reference.md`](docs/cli-reference.md): generated list of every
-  command, option, and category the binaries expose.
-- `man ojuny`: every `ojuny` category, command, option, and exit code.
-- `man ojuny-patches`: patch installation, repository layout, and metadata format.
+- [`docs/cli-reference.md`](docs/cli-reference.md): generated command list.
+- `man ojuny`: the full category and command surface.
+- `man ojuny-patches`: patch installation, repository layout, and metadata.
 - `docs/user.md`: flake path discovery, exit codes, and `ojuny doctor`.
 - `docs/patches.md`: the patch lifecycle, repository list, and security notes.
 
 ## Contributing
 
-Report bugs at <https://github.com/ojuny-project/ojuny-cli/issues>. A change must update the affected man page, add or adjust a case in `tests/run.sh`, and pass `nix flake check`. Do not include generated files from `result-cli` or `result-patches`.
+Report bugs at <https://github.com/ojuny-project/ojuny-cli/issues>. A change must
+update the command table, regenerate the reference, update the man page, add or
+adjust a case in `tests/run.sh`, and pass `nix flake check`. Do not include
+generated files from `result-cli` or `result-patches`.
 
 ## License
 
-GNU General Public License, version 3 or later. See `LICENSE`. mmsg, Dux Modular Shell, NetworkManager, BlueZ, PipeWire, playerctl, WireGuard, systemd, and Nix are separate upstream projects under their own licenses.
+GNU General Public License, version 3 or later. See `LICENSE`. mmsg, Dux Modular
+Shell, NetworkManager, BlueZ, PipeWire, playerctl, WireGuard, systemd, sbctl,
+and Nix are separate upstream projects under their own licenses.
