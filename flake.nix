@@ -11,7 +11,7 @@
   };
 
   outputs =
-    inputs@{ flake-parts, nixpkgs, ... }:
+    inputs@{ self, flake-parts, nixpkgs, ... }:
     let
       binaryInfo =
         if builtins.pathExists ./binary-url.json then
@@ -52,6 +52,10 @@
     in
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = nixpkgs.lib.systems.flakeExposed;
+
+      flake = {
+        hydraJobs = self.checks;
+      };
 
       flake.lib.mkBinary = mkBinary;
 
@@ -172,6 +176,18 @@
               type = "app";
               program = "${ojuny-cli}/bin/ojuny";
             };
+            ci = {
+              type = "app";
+              program = "${
+                pkgs.writeShellApplication {
+                  name = "ci";
+                  runtimeInputs = [ pkgs.nix ];
+                  text = ''
+                    exec nix flake check "$@"
+                  '';
+                }
+              }/bin/ci";
+            };
           };
 
           checks = {
@@ -188,6 +204,27 @@
                   touch $out
                 '';
             inherit lint tests;
+
+            cli-reference-current =
+              let
+                source = pkgs.lib.cleanSource ./.;
+              in
+              pkgs.runCommand "check-cli-reference" {
+                nativeBuildInputs = [
+                  pkgs.bash
+                  pkgs.diffutils
+                  pkgs.gawk
+                  pkgs.gnused
+                ];
+              } ''
+                cp -r ${source} work
+                chmod -R u+w work
+                cd work
+                ./scripts/gen-cli-reference.sh docs/cli-reference.md
+                diff -u ${source}/docs/cli-reference.md docs/cli-reference.md
+                touch $out
+              '';
+
             default = ojuny-cli-check;
           };
 
