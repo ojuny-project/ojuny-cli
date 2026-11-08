@@ -99,6 +99,20 @@ assert_contains "$(ojuny_cli dux --help)" "Usage: ojuny dux"
 assert_contains "$(ojuny_cli settings --help)" "Open nix-settings-gui"
 assert_contains "$(ojuny_cli multiboot status)" "Multiboot helper"
 
+cat >"$tmp/bin/efibootmgr" <<EOF
+#!$BASH
+printf '%s:%s\n' "efibootmgr" "\$*" >>"\$TEST_LOG"
+printf '%s\n' \
+    'BootCurrent: 0001' \
+    'BootOrder: 0001,0002' \
+    'Boot0001* Linux Boot Manager' \
+    'Boot0002* Windows Boot Manager'
+EOF
+chmod +x "$tmp/bin/efibootmgr"
+
+assert_contains "$(ojuny_cli recovery status)" "Recovery"
+assert_contains "$(ojuny_cli bootorder status)" "BootOrder"
+
 assert_status 2 ojuny_cli unknown-category
 assert_status 2 ojuny_cli bar preset taskbar
 assert_status 2 ojuny_cli flake update

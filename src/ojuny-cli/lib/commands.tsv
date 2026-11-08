@@ -219,6 +219,12 @@ cmd	secureboot.reset	secureboot_reset	reset	Reset Secure Boot keys	session	sbctl
 cat	multiboot	multiboot_subtree	-	Other operating systems	session	systemctl	-	-	-	0	0
 cmd	multiboot.status	multiboot_status	status	Show detected other systems	read	jq	-	-	-	1	0
 cmd	multiboot.rescan	multiboot_rescan	rescan	Rescan internal drives	session	systemctl	-	-	-	0	0
+cat	recovery	recovery_subtree	-	Recovery UKI	session	systemctl	-	-	-	0	0
+cmd	recovery.status	recovery_status	status	Show recovery UKI state	read	jq	-	-	-	1	0
+cmd	recovery.rebuild	recovery_rebuild	rebuild	Rebuild the recovery UKI	session	systemctl	-	-	-	0	0
+cat	bootorder	bootorder_subtree	-	Firmware boot order	session	systemctl	-	-	-	0	0
+cmd	bootorder.status	bootorder_status	status	Show firmware boot order	read	efibootmgr	-	-	-	1	0
+cmd	bootorder.fix	bootorder_fix	fix	Reorder Ojuny entries first	session	systemctl	-	-	-	0	0
 cat	doctor	doctor_subtree	-	Diagnostics	read	-	-	-	-	0	0
 cmd	doctor.check	doctor_check	check	Run the full diagnostic	read	-	-	-	-	1	0
 cmd	doctor.crashes	doctor_crashes	crashes	Show recent crashes	read	coredumpctl	-	-	-	0	0

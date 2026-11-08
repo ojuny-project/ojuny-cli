@@ -247,6 +247,14 @@ argument has a useful default, such as *ojuny dux* printing status or
 	*status* reads */var/lib/ojuny/multiboot.json*. *rescan* requires root and
 	starts *ojuny-multiboot.service*.
 
+*recovery* *status*|*rebuild*
+	Recovery UKI state and rebuild. *status* reads */var/lib/ojuny/recovery.json*.
+	*rebuild* requires root and starts *ojuny-recovery.service*.
+
+*bootorder* *status*|*fix*
+	Firmware boot order through *efibootmgr*. *fix* requires root and starts
+	*ojuny-bootorder.service*.
+
 *ipc* *path*|*status*|*call* <method> [args...]|*watch* <topic>|*serve*|*session*
 	Local IPC bridge. The socket lives at
 	*$XDG_RUNTIME_DIR/ojuny/ipc.sock* and speaks newline-delimited JSON.

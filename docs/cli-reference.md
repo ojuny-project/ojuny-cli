@@ -91,6 +91,8 @@ nix shell .#ojuny-cli -c ojuny --help
 | `logs` | Journal logs |
 | `secureboot` | Secure Boot keys and signing |
 | `multiboot` | Other operating systems |
+| `recovery` | Recovery UKI |
+| `bootorder` | Firmware boot order |
 | `doctor` | Diagnostics |
 | `ipc` | Local IPC bridge |
 | `debug` | Debug logging |
@@ -527,6 +529,24 @@ Other operating systems
 | --- | --- | --- |
 | `status` | `status` | Show detected other systems |
 | `rescan` | `rescan` | Rescan internal drives |
+
+### `ojuny recovery`
+
+Recovery UKI
+
+| Command | Usage | Description |
+| --- | --- | --- |
+| `status` | `status` | Show recovery UKI state |
+| `rebuild` | `rebuild` | Rebuild the recovery UKI |
+
+### `ojuny bootorder`
+
+Firmware boot order
+
+| Command | Usage | Description |
+| --- | --- | --- |
+| `status` | `status` | Show firmware boot order |
+| `fix` | `fix` | Reorder Ojuny entries first |
 
 ### `ojuny doctor`
 
