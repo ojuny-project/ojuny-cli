@@ -242,6 +242,11 @@ argument has a useful default, such as *ojuny dux* printing status or
 	Secure Boot keys and signing through *sbctl*. Mutating commands require
 	root.
 
+*multiboot* *status*|*rescan*
+	Detected other operating systems through the optional rEFInd helper.
+	*status* reads */var/lib/ojuny/multiboot.json*. *rescan* requires root and
+	starts *ojuny-multiboot.service*.
+
 *ipc* *path*|*status*|*call* <method> [args...]|*watch* <topic>|*serve*|*session*
 	Local IPC bridge. The socket lives at
 	*$XDG_RUNTIME_DIR/ojuny/ipc.sock* and speaks newline-delimited JSON.

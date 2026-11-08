@@ -90,6 +90,7 @@ nix shell .#ojuny-cli -c ojuny --help
 | `service` | Systemd services |
 | `logs` | Journal logs |
 | `secureboot` | Secure Boot keys and signing |
+| `multiboot` | Other operating systems |
 | `doctor` | Diagnostics |
 | `ipc` | Local IPC bridge |
 | `debug` | Debug logging |
@@ -517,6 +518,15 @@ Secure Boot keys and signing
 | `enroll` | `enroll` | Enroll keys |
 | `create-keys` | `create-keys` | Create signing keys |
 | `reset` | `reset` | Reset Secure Boot keys |
+
+### `ojuny multiboot`
+
+Other operating systems
+
+| Command | Usage | Description |
+| --- | --- | --- |
+| `status` | `status` | Show detected other systems |
+| `rescan` | `rescan` | Rescan internal drives |
 
 ### `ojuny doctor`
 

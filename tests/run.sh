@@ -93,9 +93,11 @@ ojuny_cli() {
 assert_contains "$(ojuny_cli --help)" "Usage: ojuny"
 assert_contains "$(ojuny_cli --help)" "wifi"
 assert_contains "$(ojuny_cli --help)" "secureboot"
+assert_contains "$(ojuny_cli --help)" "multiboot"
 assert_contains "$(ojuny_cli --version)" "ojuny"
 assert_contains "$(ojuny_cli dux --help)" "Usage: ojuny dux"
 assert_contains "$(ojuny_cli settings --help)" "Open nix-settings-gui"
+assert_contains "$(ojuny_cli multiboot status)" "Multiboot helper"
 
 assert_status 2 ojuny_cli unknown-category
 assert_status 2 ojuny_cli bar preset taskbar
