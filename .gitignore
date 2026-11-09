@@ -11,3 +11,4 @@ result-*
 # Local planning documents, not part of the published docs
 docs/llm/
 notes/
+changes.log
