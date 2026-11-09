@@ -190,3 +190,4 @@ generated files from `result-cli` or `result-patches`.
 GNU General Public License, version 3 or later. See `LICENSE`. mmsg, Dux Modular
 Shell, NetworkManager, BlueZ, PipeWire, playerctl, WireGuard, systemd, sbctl,
 and Nix are separate upstream projects under their own licenses.
+
