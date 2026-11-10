@@ -16,6 +16,7 @@
   nixos-option,
   util-linux,
   systemd,
+  efibootmgr,
   networkmanager,
   modemmanager,
   bluez,
@@ -58,6 +59,7 @@
       nixos-option
       util-linux
       systemd
+      efibootmgr
       networkmanager
       modemmanager
       bluez
