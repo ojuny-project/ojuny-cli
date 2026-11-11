@@ -303,7 +303,12 @@ disks, flake inputs, and generations.
 	Version string shown by *--version*.
 
 *OJUNY_FLAKE*
-	Flake path used by the *flake* category.
+	Flake path used by the *flake* category. Overrides
+	_/etc/ojuny/flake-path_.
+
+_/etc/ojuny/flake-path_
+	Projection of *ojuny.repoPath* and the default source for the installed
+	flake location. Falls back to _~/repos/nix-flake_.
 
 *OJUNY_HOST*
 	NixOS configuration name.

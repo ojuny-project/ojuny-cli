@@ -12,6 +12,14 @@ ojuny_flake_root() {
         return 0
     fi
 
+    if [ -r /etc/ojuny/flake-path ]; then
+        root="$(sed -n '1p' /etc/ojuny/flake-path)"
+        if [ -n "$root" ] && [ -f "$root/flake.nix" ]; then
+            printf '%s\n' "$root"
+            return 0
+        fi
+    fi
+
     cfg="${XDG_CONFIG_HOME:-$HOME/.config}/nix-settings-gui/config.json"
     if [ -r "$cfg" ] && command -v jq >/dev/null 2>&1; then
         root="$(jq -r '.flake_path // empty' "$cfg" 2>/dev/null || true)"
@@ -23,6 +31,12 @@ ojuny_flake_root() {
 
     root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
     if [ -n "$root" ] && [ -f "$root/flake.nix" ]; then
+        printf '%s\n' "$root"
+        return 0
+    fi
+
+    root="$HOME/repos/nix-flake"
+    if [ -f "$root/flake.nix" ]; then
         printf '%s\n' "$root"
         return 0
     fi
@@ -114,6 +128,11 @@ ojuny_patch_local_repository() {
     fi
 
     value="$(ojuny_config_get "$(ojuny_patches_config_file)" local_repository)"
+    if [ -n "$value" ]; then
+        printf '%s\n' "$value"
+        return 0
+    fi
+    value="$(ojuny_flake_root 2>/dev/null || true)"
     printf '%s\n' "${value:-$HOME/repos/nix-flake}"
 }
 
