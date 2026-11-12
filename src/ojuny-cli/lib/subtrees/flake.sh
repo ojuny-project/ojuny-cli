@@ -132,6 +132,44 @@ flake_activate() {
     return "$status"
 }
 
+flake_rollback_choice() {
+    local choice
+    if [ ! -t 0 ]; then
+        ojuny_err "flake rollback needs a generation when stdin is not a terminal"
+        printf '  hint: sudo ojuny flake rollback <generation>\n' >&2
+        return 1
+    fi
+
+    printf 'Roll back to:\n' >&2
+    printf '  1) previous generation\n' >&2
+    printf '  2) booted generation\n' >&2
+    printf '  3) a number of generations back\n' >&2
+    printf 'choice [1-3]: ' >&2
+    read -r choice || return 1
+
+    case "$choice" in
+    1) printf 'previous\n' ;;
+    2)
+        nixos_generation_booted || {
+            ojuny_err "cannot determine the booted generation"
+            return 1
+        }
+        ;;
+    3)
+        printf 'generations back: ' >&2
+        read -r choice || return 1
+        nixos_generation_back "$choice" || {
+            ojuny_err "invalid generation count: $choice"
+            return 1
+        }
+        ;;
+    *)
+        ojuny_usage_error "choose 1, 2, or 3"
+        return 1
+        ;;
+    esac
+}
+
 flake_rollback() {
     if [ "$(id -u)" -ne 0 ]; then
         ojuny_err "flake rollback requires root"
@@ -139,8 +177,28 @@ flake_rollback() {
         return "$OJUNY_EXIT_VALIDATION"
     fi
 
-    local status=0
-    nixos_rollback "$@" || status=$?
+    local flake host target status=0
+    flake="$(ojuny_flake_root)" || return
+    host="$(ojuny_host_name)" || return
+    ojuny_flake_context pending
+
+    target="${1:-}"
+    if [ -z "$target" ]; then
+        target="$(flake_rollback_choice)" || return "$OJUNY_EXIT_VALIDATION"
+    fi
+
+    if [ "$target" = "previous" ]; then
+        nixos_rollback "$flake" "$host" || status=$?
+    else
+        case "$target" in
+        *[!0-9]*)
+            ojuny_usage_error "usage: ojuny flake rollback [generation]"
+            return "$OJUNY_EXIT_USAGE"
+            ;;
+        esac
+        nixos_rollback "$flake" "$host" "$target" || status=$?
+    fi
+    ojuny_flake_result "$status"
     return "$status"
 }
 

@@ -3,7 +3,7 @@ ojuny_json_is_valid() {
 }
 
 ojuny_json_has_schema() {
-    jq -e '.schema == 1' <<<"$1" >/dev/null 2>&1
+    jq -e '(.schema | type) == "number" and .schema >= 1 and .ok == true' <<<"$1" >/dev/null 2>&1
 }
 
 ojuny_json_ok() {

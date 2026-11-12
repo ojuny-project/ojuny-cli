@@ -252,7 +252,7 @@ Runtime toggles
 | `idle` | `[on|off|toggle]` | Toggle idle inhibit |
 | `dnd` | `[on|off|toggle]` | Toggle do not disturb |
 | `lockscreen` | `lockscreen` | Lock the session |
-| `screensaver` | `screensaver` | Lock the session |
+| `screensaver` | `screensaver` | Start the lock-screen screensaver |
 
 ### `ojuny clipboard`
 
@@ -285,6 +285,7 @@ Keybind viewer
 | `open` | `open` | Open the keybind viewer |
 | `list` | `list` | List keybind providers |
 | `show` | `<provider>` | Show binds for a provider |
+| `count` | `[provider]` | Count every bind for a provider |
 
 ### `ojuny capture`
 

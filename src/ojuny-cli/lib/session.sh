@@ -1,5 +1,5 @@
 session_quit() {
-    ojuny_require_command mmsg
+    ojuny_require_session_command mmsg
     mquit
 }
 

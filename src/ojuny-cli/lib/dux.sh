@@ -2,27 +2,42 @@ dux_call() {
     local object="$1"
     local method="$2"
     shift 2
-    ojuny_require_command dms
-    dms ipc call "$object" "$method" "$@"
+    ojuny_require_session_command dms
+
+    local output status
+    set +e
+    output="$(dms ipc call "$object" "$method" "$@")"
+    status=$?
+    set -e
+
+    if [ "$status" -ne 0 ]; then
+        [ -z "$output" ] || printf '%s\n' "$output"
+        return "$status"
+    fi
+    if printf '%s' "$output" | grep -Eq 'Too few arguments|Too many arguments|^Error:|_FAILED$'; then
+        printf '%s\n' "$output" >&2
+        return "$OJUNY_EXIT_BACKEND"
+    fi
+    [ -z "$output" ] || printf '%s\n' "$output"
 }
 
 dux_ipc() {
-    ojuny_require_command dms
+    ojuny_require_session_command dms
     dms ipc "$@"
 }
 
 dux_start() {
-    ojuny_require_command dms
+    ojuny_require_session_command dms
     dms run
 }
 
 dux_stop() {
-    ojuny_require_command dms
+    ojuny_require_session_command dms
     dms kill
 }
 
 dux_restart() {
-    ojuny_require_command dms
+    ojuny_require_session_command dms
     dms kill
     if command -v mmsg >/dev/null 2>&1; then
         mdispatch spawn_shell "dms run"
@@ -32,12 +47,12 @@ dux_restart() {
 }
 
 dux_status() {
-    ojuny_require_command dms
+    ojuny_require_session_command dms
     dms version
 }
 
 dux_screenshot() {
-    ojuny_require_command dms
+    ojuny_require_session_command dms
     dms screenshot "$@"
 }
 
@@ -83,15 +98,15 @@ dux_menu_toggle() {
 }
 
 dux_bar_toggle() {
-    dux_call bar toggle
+    dux_call bar toggle index 0
 }
 
-dux_bar_hide_id() {
-    dux_call bar hide id "$1"
+dux_bar_hide() {
+    dux_call bar hide index 0
 }
 
-dux_bar_reveal_id() {
-    dux_call bar reveal id "$1"
+dux_bar_reveal() {
+    dux_call bar reveal index 0
 }
 
 dux_settings_set() {

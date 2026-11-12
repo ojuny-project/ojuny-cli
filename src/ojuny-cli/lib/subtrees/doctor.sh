@@ -36,13 +36,18 @@ doctor_check() {
         printf 'legacy: config %s exists; Dux Modular Shell now uses %s\n' "$legacy_config" "$dux_config"
     fi
 
+    printf 'session: %s\n' "$(ojuny_session_summary)"
+
     for command in dms mmsg nmcli mmcli bluetoothctl wpctl playerctl rfkill \
         udisksctl systemctl loginctl journalctl sbctl upower wtype ydotool \
         nix nixos-rebuild nix-settings-gui git jq; do
         if command -v "$command" >/dev/null 2>&1; then
             printf 'ok: %s\n' "$command"
         else
-            printf 'missing: %s\n' "$command"
+            case "$command" in
+            dms | mmsg) printf 'missing: %s (no graphical session)\n' "$command" ;;
+            *) printf 'missing: %s\n' "$command" ;;
+            esac
             status=1
         fi
     done

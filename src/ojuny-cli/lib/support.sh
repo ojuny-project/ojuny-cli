@@ -41,9 +41,12 @@ support_backend_line() {
     local command="$1"
     if command -v "$command" >/dev/null 2>&1; then
         printf '  %-20s present\n' "$command"
-    else
-        printf '  %-20s missing\n' "$command"
+        return 0
     fi
+    case "$command" in
+    dms | mmsg) printf '  %-20s missing (no graphical session)\n' "$command" ;;
+    *) printf '  %-20s missing\n' "$command" ;;
+    esac
 }
 
 support_render() {
@@ -84,6 +87,7 @@ support_render() {
     ojuny_heading 'Session'
     printf '  desktop:   %s\n' "${XDG_CURRENT_DESKTOP:-unknown}"
     printf '  session:   %s\n' "${XDG_SESSION_DESKTOP:-unknown}"
+    printf '  summary:   %s\n' "$(ojuny_session_summary)"
     if [ -n "${XDG_SESSION_ID:-}" ] && command -v loginctl >/dev/null 2>&1; then
         loginctl show-session "$XDG_SESSION_ID" -p Type -p Active -p Remote 2>/dev/null |
             sed 's/^/  /'

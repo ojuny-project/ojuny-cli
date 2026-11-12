@@ -3,6 +3,6 @@ notify_cmd() {
         ojuny_usage_error "usage: ojuny notify <summary> [body] [flags]"
         return "$OJUNY_EXIT_USAGE"
     fi
-    ojuny_require_command dms
+    ojuny_require_session_command dms
     ojuny_exec dms notify "$@"
 }

@@ -37,7 +37,7 @@ ojuny_run_command() {
     shift 2
 
     if ojuny_is_json; then
-        local out status message hint errfile errtext
+        local out status message hint errfile errtext code
         errfile="$(mktemp "${TMPDIR:-/tmp}/ojuny.XXXXXX")"
         set +e
         out="$("$handler" "$@" 2>"$errfile")"
@@ -60,14 +60,60 @@ ojuny_run_command() {
             else
                 ojuny_json_ok "$name" "$out"
             fi
-        else
-            [ -n "$message" ] || message="command failed"
-            ojuny_json_error "$name" "$status" "$message" "$hint"
+            return 0
         fi
-        return "$status"
+
+        code="$status"
+        case "$status" in
+        "$OJUNY_EXIT_USAGE" | "$OJUNY_EXIT_DEPENDENCY" | "$OJUNY_EXIT_VALIDATION" | "$OJUNY_EXIT_CONFLICT")
+            ;;
+        *)
+            if [ "$status" -lt 128 ]; then
+                code="$OJUNY_EXIT_BACKEND"
+            fi
+            ;;
+        esac
+        [ -n "$message" ] || message="command failed"
+        ojuny_json_error "$name" "$code" "$message" "$hint"
+        return "$code"
     fi
 
-    "$handler" "$@"
+    local workdir outfile fifo status empty=0 teepid
+    workdir="$(mktemp -d "${TMPDIR:-/tmp}/ojuny.XXXXXX")"
+    outfile="$workdir/stdout"
+    fifo="$workdir/stdout.fifo"
+    mkfifo "$fifo"
+    tee "$outfile" <"$fifo" &
+    teepid=$!
+
+    set +e
+    (
+        set -e
+        "$handler" "$@" >"$fifo"
+    )
+    status=$?
+    set -e
+    wait "$teepid" 2>/dev/null || true
+    [ -s "$outfile" ] || empty=1
+    rm -f "$fifo" "$outfile"
+    rmdir "$workdir" 2>/dev/null || true
+
+    if [ "$status" -eq "$OJUNY_EXIT_OK" ]; then
+        return "$OJUNY_EXIT_OK"
+    fi
+    case "$status" in
+    "$OJUNY_EXIT_USAGE" | "$OJUNY_EXIT_DEPENDENCY" | "$OJUNY_EXIT_VALIDATION" | "$OJUNY_EXIT_CONFLICT")
+        return "$status"
+        ;;
+    esac
+    if [ "$status" -ge 128 ]; then
+        return "$status"
+    fi
+    if [ "$empty" -eq 1 ]; then
+        ojuny_err "$name failed (exit $status)"
+        return "$OJUNY_EXIT_BACKEND"
+    fi
+    return "$status"
 }
 
 if [ "$OJUNY_VERSION_FLAG" -eq 1 ]; then
@@ -78,11 +124,11 @@ fi
 if [ "$#" -eq 0 ]; then
     if [ "$OJUNY_HELP" -eq 1 ]; then
         ojuny_help_usage
-    else
-        OJUNY_CURRENT_COMMAND="status"
-        ojuny_run_command status cmd_status
+        exit 0
     fi
-    exit 0
+    OJUNY_CURRENT_COMMAND="status"
+    ojuny_run_command status cmd_status
+    exit $?
 fi
 
 category="${1:-}"

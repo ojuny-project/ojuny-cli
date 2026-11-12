@@ -1,3 +1,12 @@
+patches_stage() {
+    local path="$1"
+    local root
+    root="$(ojuny_flake_root 2>/dev/null)" || return 0
+    [ -n "$root" ] || return 0
+    git -C "$root" rev-parse --is-inside-work-tree >/dev/null 2>&1 || return 0
+    git -C "$root" add -A -- "$path" || return 1
+}
+
 patches_install_one() {
     local id="$1"
     local stack="${2:-}"
@@ -41,6 +50,7 @@ patches_install_one() {
 
     if [ "$legacy_count" -eq 1 ]; then
         mv -- "$legacy" "$dest"
+        patches_stage "$dest" || return
         printf 'upgraded legacy patch %s -> %s\n' "$legacy" "$dest"
         return 0
     fi
@@ -83,6 +93,7 @@ patches_install_one() {
 
     mkdir -p "$(ojuny_patch_dir)"
     cp -- "$patch" "$dest"
+    patches_stage "$dest" || return
     printf 'installed %s\n' "$id"
 }
 
@@ -119,6 +130,7 @@ patches_remove() {
 
     ojuny_confirm "Remove patch $id from $(ojuny_patch_dir)?" || return 1
     rm -- "$dest"
+    patches_stage "$dest" || return
     printf 'removed %s\n' "$id"
 }
 

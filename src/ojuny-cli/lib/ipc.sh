@@ -134,7 +134,7 @@ ipc_serve() {
 
 ipc_add_id() {
     local id="$1"
-    jq --arg id "$id" '. + {id:$id}'
+    jq -c --arg id "$id" '. + {id:$id}'
 }
 
 ipc_method_is_destructive() {

@@ -1,8 +1,9 @@
 toggle_list() {
     local night idle dnd
-    night="$(dux_call night status 2>/dev/null | head -n 1)"
-    idle="$(dux_call inhibit status 2>/dev/null | head -n 1)"
-    dnd="$(dux_call notifications getDoNotDisturb 2>/dev/null | head -n 1)"
+    ojuny_require_session_command dms
+    night="$(ojuny_probe dux_call night status | head -n 1)"
+    idle="$(ojuny_probe dux_call inhibit status | head -n 1)"
+    dnd="$(ojuny_probe dux_call notifications getDoNotDisturb | head -n 1)"
 
     if ojuny_is_json; then
         jq -cn --arg night "$night" --arg idle "$idle" --arg dnd "$dnd" \

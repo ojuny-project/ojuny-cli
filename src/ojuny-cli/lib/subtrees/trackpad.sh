@@ -20,7 +20,7 @@ trackpad_save_state() {
 }
 
 trackpad_devices() {
-    mmsg get all-devices | jq -r '[.devices[] | select(.types | index("trackpad")) | .name] | .[]'
+    mmsg_get all-devices | jq -r '[.devices[] | select(.types | index("trackpad")) | .name] | .[]'
 }
 
 trackpad_status() {
@@ -40,6 +40,7 @@ trackpad_status() {
 
 trackpad_toggle() {
     local current next
+    ojuny_require_session_command mmsg
     current="$(trackpad_state)"
     if [ "$current" = "on" ]; then
         next="off"
@@ -53,6 +54,7 @@ trackpad_toggle() {
 trackpad_set() {
     local wanted="$1"
     local current
+    ojuny_require_session_command mmsg
     current="$(trackpad_state)"
     if [ "$current" = "$wanted" ]; then
         return 0

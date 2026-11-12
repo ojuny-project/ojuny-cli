@@ -1,5 +1,5 @@
 display_list() {
-    ojuny_require_command dms
+    ojuny_require_session_command dms
     if ojuny_is_json; then
         dms randr --json
     else
@@ -12,7 +12,7 @@ display_current() {
 }
 
 display_brightness_device() {
-    ojuny_require_command dms
+    ojuny_require_session_command dms
     dms brightness list 2>/dev/null | awk '/^backlight:/{ print $1; exit }'
 }
 

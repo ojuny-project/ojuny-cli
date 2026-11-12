@@ -1,6 +1,6 @@
 workspace_current() {
     local data
-    data="$(mmsg get all-monitors | jq -c '[.monitors[] | select(.active == true) | {monitor: .name, workspace: (.tags[] | select(.is_active == true) | .index)}]')"
+    data="$(mmsg_get all-monitors | jq -c '[.monitors[] | select(.active == true) | {monitor: .name, workspace: (.tags[] | select(.is_active == true) | .index)}]')"
 
     if ojuny_is_json; then
         printf '%s\n' "$data"

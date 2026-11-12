@@ -1,6 +1,6 @@
 keymode_get() {
     local data
-    data="$(mmsg get keymode)"
+    data="$(mmsg_get keymode)"
     if ojuny_is_json; then
         printf '%s\n' "$data"
         return 0

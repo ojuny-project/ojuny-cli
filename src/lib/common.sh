@@ -21,6 +21,20 @@ ojuny_require_command() {
         ojuny_die "$OJUNY_EXIT_DEPENDENCY" "missing required command: $1"
 }
 
+ojuny_require_session_command() {
+    local command="$1"
+    if command -v "$command" >/dev/null 2>&1; then
+        return 0
+    fi
+    ojuny_err "missing required command: $command"
+    printf '  hint: %s is provided by the desktop session; run this from the Mango session or add its bin directory to PATH\n' "$command" >&2
+    exit "$OJUNY_EXIT_DEPENDENCY"
+}
+
+ojuny_probe() {
+    "$@" 2>/dev/null || true
+}
+
 ojuny_confirm() {
     local prompt="$1"
     local answer

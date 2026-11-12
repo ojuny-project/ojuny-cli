@@ -32,7 +32,8 @@ command set.
 - Nix with flakes enabled, to install from the flake.
 - A running Dux Modular Shell session for `bar`, `dock`, `dashboard`, `island`,
   `spotlight`, `toggle`, `clipboard`, `notepad`, `keybinds`, `settings`, and
-  `capture` commands.
+  `capture` commands. `dms` and `mmsg` come from that session and are not on
+  the login or SSH `PATH`; commands that need them exit 3 with a session hint.
 - NixOS for `ojuny flake` and `ojuny secureboot`.
 - `git` for `ojuny-patches`.
 - NetworkManager, ModemManager, BlueZ, PipeWire/WirePlumber, playerctl,
@@ -127,7 +128,13 @@ envelope. `--quiet` prints only the primary value. `--verbose` prints the
 resolved backend argv to stderr. `--dry-run` prints the argv and does not run.
 
 Exit codes: 0 success, 2 usage, 3 missing dependency, 4 backend failure,
-5 validation failure, 6 conflict.
+5 validation failure, 6 conflict. A backend failure exits 4 and always prints
+`ojuny: <command> failed (exit N)` to stderr when the handler printed no output.
+
+`ojuny status --json` uses schema 2: `data.network`, `data.audio`, and
+`data.shell` are objects. The plaintext status keeps the same fields.
+`ojuny keybinds count` reports the full bind total; the cheatsheet is a grouped
+view.
 
 ## Diagnostics and IPC
 
@@ -155,6 +162,14 @@ implement its own network, audio, Bluetooth, or display stack.
 `ojuny flake activate`, `ojuny flake gc`, `ojuny flake rollback`, and
 `ojuny secureboot` mutations require root. The CLI prints a sudo hint instead
 of escalating.
+
+`ojuny flake rollback` passes `--flake <path>#<host>` for the previous
+generation and activates an explicit generation from the system profile.
+Without a generation argument it prompts for the previous generation, the
+booted generation, or a number of generations back. `ojuny system lock` and
+`ojuny toggle lockscreen` lock the active graphical session through
+`loginctl lock-session`, including from SSH; `ojuny toggle screensaver` is a
+separate command for the lock-screen screensaver.
 
 `ojuny` does not manage flatpak, docker, container, or virtualisation state.
 Those belong to optional patches and stay outside the core surface.

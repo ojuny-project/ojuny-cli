@@ -7,17 +7,17 @@ capture_menu() {
 }
 
 capture_region() {
-    ojuny_require_command dms
+    ojuny_require_session_command dms
     ojuny_exec dms screenshot region
 }
 
 capture_full() {
-    ojuny_require_command dms
+    ojuny_require_session_command dms
     ojuny_exec dms screenshot full
 }
 
 capture_window() {
-    ojuny_require_command dms
+    ojuny_require_session_command dms
     ojuny_exec dms screenshot window
 }
 
@@ -26,7 +26,7 @@ capture_scroll() {
         ojuny_exec ojuny-capture-scroll
         return
     fi
-    ojuny_require_command dms
+    ojuny_require_session_command dms
     ojuny_exec dms screenshot scroll
 }
 

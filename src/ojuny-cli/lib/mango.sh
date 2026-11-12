@@ -1,6 +1,7 @@
 mdispatch() {
     local dispatcher="$1"
     shift
+    ojuny_require_session_command mmsg
 
     if [ "$#" -eq 0 ]; then
         ojuny_exec_quiet mmsg dispatch "$dispatcher"
@@ -11,10 +12,12 @@ mdispatch() {
 }
 
 mmsg_get() {
+    ojuny_require_session_command mmsg
     mmsg get "$@"
 }
 
 mclientlist() {
+    ojuny_require_session_command mmsg
     mmsg get all-clients
 }
 
@@ -161,7 +164,7 @@ mquit() {
 
 mcurrentlayout() {
     local monitor
-    monitor="$(mmsg get all-monitors | jq -r '.monitors[] | select(.active == true) | .name' | head -n 1)"
+    monitor="$(mmsg_get all-monitors | jq -r '.monitors[] | select(.active == true) | .name' | head -n 1)"
     [ -n "$monitor" ] || return 1
     mmsg get monitor "$monitor" | jq -r '.tags[] | select(.is_active == true) | .layout'
 }

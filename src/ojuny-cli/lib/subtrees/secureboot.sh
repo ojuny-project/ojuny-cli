@@ -13,8 +13,20 @@ secureboot_status() {
 }
 
 secureboot_list() {
+    secureboot_require_root list || return
     ojuny_require_command sbctl
-    sbctl list-files
+    local output
+    if output="$(sbctl list-files 2>&1)"; then
+        printf '%s\n' "$output"
+        return 0
+    fi
+    ojuny_err "$output"
+    ojuny_err "a database entry may point at a missing path; retrying without landlock"
+    if sbctl --disable-landlock list-files; then
+        ojuny_err "remove a stale entry with: sudo sbctl --disable-landlock remove-file <path>"
+        return 0
+    fi
+    return 1
 }
 
 secureboot_verify() {

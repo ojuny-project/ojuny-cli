@@ -318,6 +318,9 @@ Failure:
 {"schema":1,"command":"vpn.up","ok":false,"error":{"code":3,"message":"...","hint":"..."}}
 \`\`\`
 
+\`ojuny status --json\` uses schema 2. Its \`network\`, \`audio\`, and \`shell\`
+fields are objects; the other commands keep schema 1.
+
 ## Command map
 
 EOF

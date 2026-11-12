@@ -47,14 +47,33 @@ sound_micvolume() {
     ojuny_exec wpctl set-volume @DEFAULT_AUDIO_SOURCE@ "$1"
 }
 
+sound_mute_value() {
+    case "${1:-toggle}" in
+    on | true) printf '1\n' ;;
+    off | false) printf '0\n' ;;
+    toggle | "") printf 'toggle\n' ;;
+    *) return 1 ;;
+    esac
+}
+
 sound_mute() {
+    local value
+    if ! value="$(sound_mute_value "${1:-toggle}")"; then
+        ojuny_usage_error "usage: ojuny sound mute [on|off|toggle]"
+        return "$OJUNY_EXIT_USAGE"
+    fi
     ojuny_require_command wpctl
-    ojuny_exec wpctl set-mute @DEFAULT_AUDIO_SINK@ "${1:-toggle}"
+    ojuny_exec wpctl set-mute @DEFAULT_AUDIO_SINK@ "$value"
 }
 
 sound_micmute() {
+    local value
+    if ! value="$(sound_mute_value "${1:-toggle}")"; then
+        ojuny_usage_error "usage: ojuny sound micmute [on|off|toggle]"
+        return "$OJUNY_EXIT_USAGE"
+    fi
     ojuny_require_command wpctl
-    ojuny_exec wpctl set-mute @DEFAULT_AUDIO_SOURCE@ "${1:-toggle}"
+    ojuny_exec wpctl set-mute @DEFAULT_AUDIO_SOURCE@ "$value"
 }
 
 sound_subtree() {

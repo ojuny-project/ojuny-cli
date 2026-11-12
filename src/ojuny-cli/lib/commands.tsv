@@ -76,7 +76,7 @@ cmd	toggle.night	toggle_night	[on|off|toggle]	Toggle night mode	runtime	dms	-	-	
 cmd	toggle.idle	toggle_idle	[on|off|toggle]	Toggle idle inhibit	runtime	dms	-	-	-	0	0
 cmd	toggle.dnd	toggle_dnd	[on|off|toggle]	Toggle do not disturb	runtime	dms	-	-	-	0	0
 cmd	toggle.lockscreen	toggle_lockscreen	lockscreen	Lock the session	session	loginctl	-	-	-	0	0
-cmd	toggle.screensaver	toggle_screensaver	screensaver	Lock the session	session	loginctl	-	-	-	0	0
+cmd	toggle.screensaver	toggle_screensaver	screensaver	Start the lock-screen screensaver	session	loginctl	-	-	-	0	0
 cat	clipboard	clipboard_subtree	-	Clipboard	runtime	dms	-	-	-	0	0
 cmd	clipboard.open	clipboard_open	open	Open the clipboard panel	runtime	dms	-	-	-	1	0
 cmd	clipboard.clear	clipboard_clear	clear	Clear clipboard history	runtime	dms	-	-	-	0	1
@@ -91,6 +91,7 @@ cat	keybinds	keybinds_subtree	-	Keybind viewer	read	dms	-	-	-	0	0
 cmd	keybinds.open	keybinds_open	open	Open the keybind viewer	read	dms	-	-	-	1	0
 cmd	keybinds.list	keybinds_list	list	List keybind providers	read	dms	-	-	-	0	0
 cmd	keybinds.show	keybinds_show	<provider>	Show binds for a provider	read	dms	-	-	-	0	0
+cmd	keybinds.count	keybinds_count	[provider]	Count every bind for a provider	read	dms	-	-	-	0	0
 cat	capture	capture_subtree	-	Screenshots and recording	runtime	dms	-	-	-	0	0
 cmd	capture.menu	capture_menu	menu	Open the screenshot menu	runtime	dms	-	-	-	1	0
 cmd	capture.region	capture_region	region	Capture a region	runtime	dms	-	-	-	0	0

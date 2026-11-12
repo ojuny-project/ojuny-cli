@@ -11,16 +11,16 @@ system_battery() {
 
 system_status() {
     local uptime_value load memory disk battery
-    uptime_value="$(uptime -p 2>/dev/null | sed 's/^up //')"
+    uptime_value="$(ojuny_probe uptime -p | sed 's/^up //')"
     if [ -z "$uptime_value" ]; then
-        uptime_value="$(uptime | sed 's/.*up //; s/, *[0-9]* users.*//')"
+        uptime_value="$(ojuny_probe uptime | sed 's/.*up //; s/, *[0-9]* users.*//')"
     fi
     load="$(cut -d' ' -f1-3 /proc/loadavg)"
-    memory="$(free -h | awk '/^Mem:/{ print $3 " / " $2 }')"
-    disk="$(df -h / | awk 'NR==2 { print $3 " / " $2 " (" $5 ")" }')"
+    memory="$(free -h 2>/dev/null | awk '/^Mem:/{ print $3 " / " $2 }' || true)"
+    disk="$(df -h / 2>/dev/null | awk 'NR==2 { print $3 " / " $2 " (" $5 ")" }' || true)"
     if command -v upower >/dev/null 2>&1; then
-        battery="$(upower -e | grep -E '/battery_' | head -n 1 | xargs -r upower -i 2>/dev/null |
-            awk -F: '/percentage|state/ { gsub(/^ +| +$/, "", $2); printf "%s%s", sep, $2; sep=", " }')"
+        battery="$(upower -e 2>/dev/null | grep -E '/battery_' | head -n 1 | xargs -r upower -i 2>/dev/null |
+            awk -F: '/percentage|state/ { gsub(/^ +| +$/, "", $2); printf "%s%s", sep, $2; sep=", " }' || true)"
     fi
     [ -n "$battery" ] || battery="unknown"
 

@@ -7,7 +7,7 @@ dispatch_subtree() {
     fi
     shift
 
-    ojuny_require_command mmsg
+    ojuny_require_session_command mmsg
     if [ "$#" -eq 0 ]; then
         mmsg dispatch "$dispatcher"
     else

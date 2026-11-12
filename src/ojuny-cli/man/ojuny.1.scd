@@ -166,8 +166,11 @@ argument has a useful default, such as *ojuny dux* printing status or
 *notepad* *open*|*toggle*
 	Notepad. Without a command it opens.
 
-*keybinds* *open*|*list*|*show* <provider>
-	Keybind viewer. Without a command it opens.
+*keybinds* *open*|*list*|*show* <provider>|*count* [provider]
+	Keybind viewer. Without a command it opens. *show* prints the raw provider
+	list; *count* prints the number of binds per category and the total. The
+	*SUPER+K* cheatsheet groups rows and collapses consecutive numeric keys, so
+	its row count is lower than the *count* total.
 
 *capture* *menu*|*region*|*full*|*window*|*scroll*|*text*|*qr*|*edit* [target]|
 *toolbar*
@@ -214,7 +217,10 @@ argument has a useful default, such as *ojuny dux* printing status or
 
 *system* *status*|*battery*|*lock*|*logout*|*suspend*|*hibernate*|*reboot*|
 *shutdown*
-	Power and session actions.
+	Power and session actions. *lock* and *toggle* *lockscreen* call
+	*loginctl lock-session* for the active graphical session, including from
+	SSH, and exit 5 when no graphical session exists. *toggle* *screensaver* is
+	a separate lock-screen screensaver command.
 
 *input* *type* <text>|*key* <combo>|*click* [left|right|middle]|
 *move* <x> <y>|*scroll* <up|down|left|right> [amount]
@@ -228,6 +234,11 @@ argument has a useful default, such as *ojuny dux* printing status or
 *gc* [--dry-run]|*option* <path>
 	Flake and system management. *update* requires at least one input.
 	*activate* requires root and prints a sudo hint when run unprivileged.
+	*rollback* passes the configured flake and host to *nixos-rebuild* for the
+	previous generation. An explicit generation is activated from the system
+	profile with *nix-env* and *switch-to-configuration*. Without a generation
+	it prompts for the previous generation, the booted generation, or a number
+	of generations back.
 
 *service* *list*|*status* <name>|*start* <name>|*stop* <name>|
 *restart* <name>|*reload* <name>|*enable* <name>|*disable* <name>
@@ -244,8 +255,11 @@ argument has a useful default, such as *ojuny dux* printing status or
 
 *multiboot* *status*|*rescan*
 	Detected other operating systems through the optional rEFInd helper.
-	*status* reads */var/lib/ojuny/multiboot.json*. *rescan* requires root and
-	starts *ojuny-multiboot.service*.
+	*status* reads */var/lib/ojuny/multiboot.json* and prints the helper state
+	and scan time. When the manifest lists no systems but the firmware has a
+	Windows Boot Manager entry, it prints a rescan hint. An unreadable or
+	invalid manifest exits 5. *rescan* requires root and starts
+	*ojuny-multiboot.service*.
 
 *recovery* *status*|*rebuild*
 	Recovery UKI state and rebuild. *status* reads */var/lib/ojuny/recovery.json*.
@@ -284,8 +298,17 @@ The failure envelope is:
 
 	{"schema":1,"command":"vpn.up","ok":false,"error":{"code":3,"message":"...","hint":"..."}}
 
-JSON is one document on stdout, with no color and no diagnostics. Backend
-output goes to stderr.
+*status* uses schema 2. Its data keeps the plaintext fields and structures
+*network*, *audio*, and *shell*:
+
+	{"network":{"state":"connected","wifi":"enabled"},
+	 "audio":{"volume":0.4,"muted":false},
+	 "shell":{"state":"running","version":"dms 1.0.0"}}
+
+When no Dux session is on *PATH*, *shell* is
+*{"state":"unavailable","reason":"dms not on PATH"}*. When no sink exists,
+*audio.volume* and *audio.muted* are *null*. JSON is one document on stdout,
+with no color and no diagnostics. Backend output goes to stderr.
 
 # COMPLETION
 
@@ -357,7 +380,8 @@ _$XDG_STATE_HOME/ojuny/crashes/_
 	Missing dependency.
 
 4
-	Backend failure.
+	Backend failure. A failure with no stdout also prints
+	*ojuny: <command> failed (exit N)* to stderr.
 
 5
 	Validation failure.

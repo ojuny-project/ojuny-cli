@@ -3,17 +3,17 @@ clipboard_open() {
 }
 
 clipboard_clear() {
-    ojuny_require_command dms
+    ojuny_require_session_command dms
     ojuny_exec dms clipboard clear
 }
 
 clipboard_echo() {
-    ojuny_require_command dms
+    ojuny_require_session_command dms
     dms clipboard paste
 }
 
 clipboard_copy() {
-    ojuny_require_command dms
+    ojuny_require_session_command dms
     if [ "$#" -gt 0 ]; then
         ojuny_exec dms clipboard copy "$1"
     else
@@ -22,7 +22,7 @@ clipboard_copy() {
 }
 
 clipboard_history() {
-    ojuny_require_command dms
+    ojuny_require_session_command dms
     dms clipboard history
 }
 
@@ -31,7 +31,7 @@ clipboard_search() {
         ojuny_usage_error "usage: ojuny clipboard search <text>"
         return "$OJUNY_EXIT_USAGE"
     fi
-    ojuny_require_command dms
+    ojuny_require_session_command dms
     dms clipboard search "$1"
 }
 

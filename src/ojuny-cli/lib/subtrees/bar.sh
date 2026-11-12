@@ -3,11 +3,11 @@ bar_toggle() {
 }
 
 bar_show() {
-    dux_call bar show
+    dux_bar_reveal
 }
 
 bar_hide() {
-    dux_call bar hide
+    dux_bar_hide
 }
 
 bar_subtree() {
