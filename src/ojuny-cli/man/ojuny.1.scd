@@ -302,8 +302,8 @@ The failure envelope is:
 *network*, *audio*, and *shell*:
 
 	{"network":{"state":"connected","wifi":"enabled"},
-	 "audio":{"volume":0.4,"muted":false},
-	 "shell":{"state":"running","version":"dms 1.0.0"}}
+	"audio":{"volume":0.4,"muted":false},
+	"shell":{"state":"running","version":"dms 1.0.0"}}
 
 When no Dux session is on *PATH*, *shell* is
 *{"state":"unavailable","reason":"dms not on PATH"}*. When no sink exists,
