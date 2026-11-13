@@ -16,6 +16,10 @@ multiboot_rescan_hint() {
     ojuny_probe efibootmgr -v | grep -q "Windows Boot Manager"
 }
 
+multiboot_unit_exists() {
+    ojuny_probe systemctl list-unit-files ojuny-multiboot.service 2>/dev/null | grep -q '^ojuny-multiboot\.service'
+}
+
 multiboot_status() {
     local manifest systems hint=""
     manifest="$(multiboot_manifest)"
@@ -35,8 +39,12 @@ multiboot_status() {
     fi
 
     systems="$(jq -r '.systems | length' "$manifest")"
-    if [ "$systems" -eq 0 ] && multiboot_rescan_hint; then
-        hint="run sudo ojuny multiboot rescan"
+    if [ "$systems" -eq 0 ]; then
+        if multiboot_unit_exists; then
+            multiboot_rescan_hint && hint="run sudo ojuny multiboot rescan"
+        else
+            hint="enable ojuny.multiboot and rebuild to detect other systems"
+        fi
     fi
 
     if ojuny_is_json; then
@@ -58,6 +66,11 @@ multiboot_status() {
 multiboot_rescan() {
     ojuny_require_command systemctl
     multiboot_require_root rescan || return
+    if ! multiboot_unit_exists; then
+        ojuny_err "multiboot helper is not enabled"
+        printf '  hint: set ojuny.multiboot.enable = true and rebuild\n' >&2
+        return "$OJUNY_EXIT_BACKEND"
+    fi
     ojuny_exec systemctl start ojuny-multiboot.service
     multiboot_status
 }
