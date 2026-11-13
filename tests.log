@@ -1,0 +1,16 @@
+# Tests
+# Local test record for this repository.
+# Run against commit fe70a95 on 2026-11-13.
+# Device: ojuny test laptop, NixOS 26.11.20261111.d4f25a3, kernel 6.18.63.
+# Result: all listed tests passed.
+
+- PASS CLI-01: status JSON uses schema 2 with structured fields. Method: run `ojuny status --json` and validate the schema, network, audio, and shell objects with `jq`. Evidence: RUN-01.
+- PASS NIX-10: diagnostics and help are scriptable. Method: `ojuny --help`, `ojuny commands` (259 lines), and an unknown category exit 2 with a usage line. Evidence: RUN-02.
+- PASS CLI-02: island bars are reported as unsupported. Method: run `ojuny bar hide` and `show` in the session; both print `island bars do not support hide or show` and exit 4. Evidence: RUN-03, RUN-04.
+- PASS CLI-05: multiboot reports a disabled helper truthfully. Method: `ojuny multiboot status` prints the enable hint, and `sudo ojuny multiboot rescan` exits 4 with `multiboot helper is not enabled`. Evidence: RUN-03.
+- PASS CLI-03: sound mute changes the sink state. Method: `ojuny sound mute on` and `off` checked with `wpctl get-volume`. Evidence: RUN-01.
+- PASS CLI-04: Secure Boot commands require root. Method: `ojuny secureboot list` as the user exits 5 with the sudo hint; the root path lists and verifies signatures. Evidence: RUN-01.
+- PASS CLI-06: session commands resolve their backends. Method: `ojuny status --json` inside the session reports `shell.state=running` with `dms 2.2-beta`; outside the session it reports `dms not on PATH`. Evidence: RUN-01.
+- PASS SESSION-03: lock and unlock work without a crash. Method: `ojuny system lock`, unlock with the test password through `ydotool`, and read `LockedHint` before and after. Evidence: RUN-01.
+- PASS GOAL-02-R2: rollback requires root and a generation. Method: `ojuny flake rollback` exits 5 with the sudo hint; the interactive prompt source offers previous, booted, and N generations. Evidence: RUN-02.
+- PASS keybind total: `ojuny keybinds count` reports 137. Method: run the command in the session and compare with the cheatsheet total. Evidence: RUN-01.
