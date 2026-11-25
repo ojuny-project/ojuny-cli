@@ -35,20 +35,6 @@ nixos_activate_now() {
     nixos-rebuild switch --flake "$flake#$host"
 }
 
-# A stale loader.tmp from an interrupted bootloader install makes every later
-# systemd-boot install fail with FileExistsError. Remove it and refuse to start
-# when the ESP is too full to finish.
-boot_loader_preflight() {
-    local avail
-    rm -f /boot/loader/loader.tmp
-    avail="$(df -Pk /boot 2>/dev/null | awk 'NR==2 { print $4 }')"
-    if [ -n "$avail" ] && [ "$avail" -lt 65536 ]; then
-        ojuny_err "boot partition has ${avail} KiB free; clean old generations before rebuilding"
-        return "$OJUNY_EXIT_VALIDATION"
-    fi
-    return 0
-}
-
 nixos_rollback() {
     local flake="$1"
     local host="$2"
