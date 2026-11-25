@@ -33,8 +33,8 @@ cmd_status() {
     disk="$(df -h / 2>/dev/null | awk 'NR==2 { print $3 " / " $2 " (" $5 ")" }' || true)"
 
     if command -v upower >/dev/null 2>&1; then
-        battery="$(upower -e 2>/dev/null | grep -E '/battery_' | head -n 1 |
-            xargs -r upower -i 2>/dev/null |
+        battery="$(timeout 2 upower -e 2>/dev/null | grep -E '/battery_' | head -n 1 |
+            xargs -r timeout 2 upower -i 2>/dev/null |
             awk -F: '/percentage|state/ { gsub(/^ +| +$/, "", $2); printf "%s%s", sep, $2; sep=", " }' || true)"
     fi
     [ -n "$battery" ] || battery="unknown"

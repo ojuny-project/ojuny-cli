@@ -23,11 +23,11 @@ support_de_wm() {
     version=""
     case "$wm" in
     mango)
-        version="$(mmsg get version 2>/dev/null | jq -r '.version // empty' 2>/dev/null || true)"
+        version="$(timeout 2 mmsg get version 2>/dev/null | jq -r '.version // empty' 2>/dev/null || true)"
         ;;
     esac
     if [ -z "$version" ] && command -v dms >/dev/null 2>&1; then
-        version="$(dms version 2>/dev/null | head -n 1)"
+        version="$(timeout 2 dms version 2>/dev/null | head -n 1)"
     fi
 
     printf '%s' "${desktop}"
@@ -96,22 +96,22 @@ support_render() {
     if command -v nmcli >/dev/null 2>&1; then
         printf '\n'
         ojuny_heading 'Network'
-        nmcli general status 2>/dev/null | sed 's/^/  /'
+        timeout 2 nmcli general status 2>/dev/null | sed 's/^/  /'
         printf '\n'
-        nmcli -t -f DEVICE,TYPE,STATE,CONNECTION device status 2>/dev/null | sed 's/^/  /'
+        timeout 2 nmcli -t -f DEVICE,TYPE,STATE,CONNECTION device status 2>/dev/null | sed 's/^/  /'
     fi
 
     if command -v bluetoothctl >/dev/null 2>&1; then
         printf '\n'
         ojuny_heading 'Bluetooth'
-        bluetoothctl show 2>/dev/null | awk -F': ' '/Powered|Name/ { print "  " $1 ": " $2 }'
+        timeout 2 bluetoothctl show 2>/dev/null | awk -F': ' '/Powered|Name/ { print "  " $1 ": " $2 }'
     fi
 
     if command -v wpctl >/dev/null 2>&1; then
         printf '\n'
         ojuny_heading 'Audio'
-        printf '  output:    %s\n' "$(wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null)"
-        printf '  input:     %s\n' "$(wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null)"
+        printf '  output:    %s\n' "$(timeout 2 wpctl get-volume @DEFAULT_AUDIO_SINK@ 2>/dev/null)"
+        printf '  input:     %s\n' "$(timeout 2 wpctl get-volume @DEFAULT_AUDIO_SOURCE@ 2>/dev/null)"
     fi
 
     printf '\n'

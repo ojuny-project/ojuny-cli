@@ -32,7 +32,11 @@ ojuny_require_session_command() {
 }
 
 ojuny_probe() {
-    "$@" 2>/dev/null || true
+    if declare -F "$1" >/dev/null 2>&1; then
+        "$@" 2>/dev/null || true
+    else
+        timeout 2 "$@" 2>/dev/null || true
+    fi
 }
 
 ojuny_confirm() {

@@ -175,6 +175,24 @@ assert_contains "$status_out" "40% (unmuted)"
 assert_contains "$status_out" "dms test"
 assert_contains "$(ojuny_cli system status)" "uptime"
 
+# A stuck shell backend must not hang the status or support bundle.
+cp "$tmp/bin/dms" "$tmp/bin/dms.real"
+cat >"$tmp/bin/dms" <<EOF
+#!$BASH
+sleep 30
+EOF
+chmod +x "$tmp/bin/dms"
+start=$SECONDS
+status=0
+details_status=0
+timeout 10 "$OJUNY_BIN" status >/dev/null 2>&1 || status=$?
+timeout 10 "$OJUNY_BIN" print-system-details >/dev/null 2>&1 || details_status=$?
+elapsed=$((SECONDS - start))
+mv "$tmp/bin/dms.real" "$tmp/bin/dms"
+[ "$elapsed" -lt 12 ] || fail "status waited ${elapsed}s on a stuck dms"
+[ "$status" -ne 124 ] || fail "status hit the test timeout on a stuck dms"
+[ "$details_status" -ne 124 ] || fail "print-system-details hit the test timeout on a stuck dms"
+
 printf 'not json\n' >"$tmp/multiboot.json"
 status=0
 err="$(OJUNY_MULTIBOOT_MANIFEST="$tmp/multiboot.json" ojuny_cli multiboot status 2>&1 >/dev/null)" || status=$?

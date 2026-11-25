@@ -122,6 +122,7 @@ flake_activate() {
     fi
 
     ojuny_flake_context pending
+    boot_loader_preflight || return
     local status=0
     if [ "$mode" = "now" ]; then
         nixos_activate_now "$flake" "$host" "${extra[@]}" || status=$?
