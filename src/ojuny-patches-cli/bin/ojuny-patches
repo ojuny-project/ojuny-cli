@@ -28,6 +28,13 @@ case "$1" in
     ;;
 esac
 
+# The flake, the patch directory and ~/.config/ojuny belong to the invoking
+# user. A root run creates root-owned files that Home Manager cannot link.
+if [ "$EUID" -eq 0 ]; then
+    ojuny_err "run ojuny-patches as the user who owns the flake, not with sudo or as root"
+    exit "$OJUNY_EXIT_USAGE"
+fi
+
 ojuny_parse_global_options "$@"
 set -- "${OJUNY_ARGS[@]}"
 
