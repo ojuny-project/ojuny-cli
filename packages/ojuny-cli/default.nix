@@ -12,6 +12,7 @@
   jq,
   git,
   nix,
+  nix-output-monitor,
   nixos-rebuild,
   nixos-option,
   util-linux,
@@ -55,6 +56,7 @@
       jq
       git
       nix
+      nix-output-monitor
       nixos-rebuild
       nixos-option
       util-linux

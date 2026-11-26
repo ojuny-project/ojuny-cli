@@ -42,8 +42,8 @@ EOF
 }
 
 for name in mmsg dms nmcli mmcli bluetoothctl wpctl playerctl rfkill \
-    udisksctl systemctl loginctl journalctl sbctl upower wtype ydotool \
-    nix-settings-gui ojuny-screenshot-menu ojuny-capture-text ojuny-capture-qr \
+    udisksctl systemctl loginctl journalctl sbctl upower wtype ydotool nom \
+    ojuny-login-splash nix-settings-gui ojuny-screenshot-menu ojuny-capture-text ojuny-capture-qr \
     ojuny-screenshot-edit socat; do
     write_fake "$name"
 done
@@ -254,7 +254,7 @@ for file in "$tmp/bin"/*; do
     esac
     ln -sf "$file" "$nosession/${file##*/}"
 done
-tool_path="$(dirname "$(command -v mktemp)"):$(dirname "$(command -v jq)"):$(dirname "$(command -v grep)"):$(dirname "$(command -v sed)")"
+tool_path="$(dirname "$(command -v mktemp)"):$(dirname "$(command -v jq)"):$(dirname "$(command -v grep)"):$(dirname "$(command -v sed)"):$(dirname "$(command -v awk)"):$(dirname "$(command -v mkdir)"):$(dirname "$(command -v tee)")"
 status=0
 err="$(PATH="$nosession:$tool_path:/usr/bin:/bin" ojuny_cli dux status 2>&1 >/dev/null)" || status=$?
 [ "$status" -eq 3 ] || fail "a missing session dms should exit 3, got $status"
@@ -346,6 +346,41 @@ if ojuny_cli debug tail | grep -q 'supersecret'; then
     fail "debug log leaked a password"
 fi
 ojuny_cli debug off
+
+mkdir -p "$tmp/flake/modules/07-system"
+printf '{ outputs = _: { }; }\n' >"$tmp/flake/flake.nix"
+printf '/* @menu displayname = "Secure Boot"; */\n{ ... }: { }\n' >"$tmp/flake/modules/07-system/00-secureboot.nix"
+printf '/* @menu icon = "x"; */\n{ ... }: { }\n' >"$tmp/flake/modules/07-system/00-noname.nix"
+assert_contains "$(OJUNY_FLAKE="$tmp/flake" ojuny_cli raw-settings --list)" "Secure Boot"
+assert_contains "$(OJUNY_FLAKE="$tmp/flake" ojuny_cli --dry-run raw-settings secureboot 2>&1)" "00-secureboot.nix"
+assert_contains "$(OJUNY_FLAKE="$tmp/flake" ojuny_cli --dry-run raw-settings "secure boot" 2>&1)" "00-secureboot.nix"
+assert_contains "$(OJUNY_FLAKE="$tmp/flake" ojuny_cli --dry-run raw-settings 00-noname 2>&1)" "00-noname.nix"
+
+assert_contains "$(ojuny_cli --dry-run build nixpkgs#hello 2>&1)" "nom build nixpkgs#hello"
+assert_contains "$(ojuny_cli --dry-run build hello 2>&1)" "nom build nixpkgs#hello"
+assert_contains "$(ojuny_cli --dry-run build ojuny-cli 2>&1)" "nom build github:ojuny-project/ojuny-cli#ojuny-cli"
+assert_contains "$(ojuny_cli --dry-run build owner/repo 2>&1)" "nom build github:owner/repo"
+assert_contains "$(ojuny_cli --dry-run build github:owner/repo#pkg 2>&1)" "nom build github:owner/repo#pkg"
+assert_contains "$(ojuny_cli --dry-run build nixpkgs#hello -- --print-build-logs 2>&1)" "--print-build-logs"
+assert_contains "$(ojuny_cli --dry-run shell zsh fzf ncdu 2>&1)" "nom shell nixpkgs#zsh nixpkgs#fzf nixpkgs#ncdu"
+assert_contains "$(ojuny_cli --dry-run develop --command true 2>&1)" "nom develop --command true"
+
+assert_contains "$(OJUNY_FLAKE="$tmp/flake" OJUNY_HOST=host ojuny_cli --dry-run rebuild 2>&1)" "nixos-rebuild switch --flake $tmp/flake#host |& nom"
+assert_contains "$(OJUNY_FLAKE="$tmp/flake" OJUNY_HOST=host ojuny_cli --dry-run rebuild boot 2>&1)" "nixos-rebuild boot --flake $tmp/flake#host |& nom"
+
+: >"$TEST_LOG"
+OJUNY_FLAKE="$tmp/flake" OJUNY_HOST=host \
+    OJUNY_ENVIRONMENT_RELOAD='printf "reload\n" >> "$TEST_LOG"' \
+    ojuny_cli rebuild >/dev/null
+rebuild_line="$(grep -n '^nixos-rebuild:' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
+start_line="$(grep -n '^ojuny-login-splash:--seconds' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
+reload_line="$(grep -n '^reload$' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
+quit_line="$(grep -n '^ojuny-login-splash:--quit' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
+[ -n "$rebuild_line" ] && [ -n "$start_line" ] && [ -n "$reload_line" ] && [ -n "$quit_line" ] ||
+    fail "rebuild, splash start, reload and splash quit did not all run"
+[ "$rebuild_line" -lt "$start_line" ] || fail "the splash hid the build instead of following it"
+[ "$start_line" -lt "$reload_line" ] || fail "the splash started after the environment reload"
+[ "$reload_line" -lt "$quit_line" ] || fail "splash quit before the environment reload"
 
 assert_contains "$("$OJUNY_PATCHES_BIN" --help)" "Usage: ojuny-patches"
 assert_contains "$("$OJUNY_PATCHES_BIN" --version)" "ojuny-patches"

@@ -37,6 +37,23 @@ crashes_coredump_json() {
     coredumpctl list --json=short --no-pager 2>/dev/null
 }
 
+crashes_raven_logs() {
+    local dir
+    dir="${XDG_STATE_HOME:-$HOME/.local/state}/ojuny/raven"
+    [ -d "$dir" ] || return 0
+    find "$dir" -maxdepth 1 -type f -name '*failure.log' -print 2>/dev/null | sed -n '1p'
+}
+
+crashes_raven_hint() {
+    local log
+    log="$(crashes_raven_logs)" || return 0
+    [ -n "$log" ] || return 0
+    if ojuny_is_json; then
+        return 0
+    fi
+    printf '  hint: a session freeze is a hang, not a coredump; read %s\n' "$log" >&2
+}
+
 crashes_list_records() {
     local dir
     dir="$(ojuny_crashes_dir)"
@@ -60,6 +77,7 @@ crashes_list() {
         if ! data="$(crashes_coredump_json)"; then
             printf '  hint: sudo ojuny crashes\n' >&2
             crashes_list_records
+            crashes_raven_hint
             return 0
         fi
         case "$data" in
@@ -75,12 +93,14 @@ crashes_list() {
                         printf '%-4s %-19s %-8s %-4s %s\n' "$idx" "$time" "$pid" "$sig" "$exe"
                     done
             fi
+            crashes_raven_hint
             return 0
             ;;
         esac
     fi
 
     crashes_list_records
+    crashes_raven_hint
 }
 
 crashes_resolve_pid() {

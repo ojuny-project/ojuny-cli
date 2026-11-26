@@ -11,7 +11,12 @@
   };
 
   outputs =
-    inputs@{ self, flake-parts, nixpkgs, ... }:
+    inputs@{
+      self,
+      flake-parts,
+      nixpkgs,
+      ...
+    }:
     let
       binaryInfo =
         if builtins.pathExists ./binary-url.json then
@@ -134,6 +139,7 @@
                   pkgs.gnused
                   pkgs.git
                   pkgs.jq
+                  pkgs.nix
                   pkgs.procps
                 ];
               }
@@ -212,21 +218,23 @@
               let
                 source = pkgs.lib.cleanSource ./.;
               in
-              pkgs.runCommand "check-cli-reference" {
-                nativeBuildInputs = [
-                  pkgs.bash
-                  pkgs.diffutils
-                  pkgs.gawk
-                  pkgs.gnused
-                ];
-              } ''
-                cp -r ${source} work
-                chmod -R u+w work
-                cd work
-                ./scripts/gen-cli-reference.sh docs/cli-reference.md
-                diff -u ${source}/docs/cli-reference.md docs/cli-reference.md
-                touch $out
-              '';
+              pkgs.runCommand "check-cli-reference"
+                {
+                  nativeBuildInputs = [
+                    pkgs.bash
+                    pkgs.diffutils
+                    pkgs.gawk
+                    pkgs.gnused
+                  ];
+                }
+                ''
+                  cp -r ${source} work
+                  chmod -R u+w work
+                  cd work
+                  bash ./scripts/gen-cli-reference.sh docs/cli-reference.md
+                  diff -u ${source}/docs/cli-reference.md docs/cli-reference.md
+                  touch $out
+                '';
 
             default = ojuny-cli-check;
           };

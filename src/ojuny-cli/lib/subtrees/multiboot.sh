@@ -43,7 +43,7 @@ multiboot_status() {
         if multiboot_unit_exists; then
             multiboot_rescan_hint && hint="run sudo ojuny multiboot rescan"
         else
-            hint="enable ojuny.multiboot and rebuild to detect other systems"
+            hint="enable ojuny.multiboot and rebuild, then run sudo ojuny multiboot rescan to detect other systems"
         fi
     fi
 

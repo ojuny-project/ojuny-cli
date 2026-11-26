@@ -18,6 +18,8 @@ ojuny settings bar
 
 `ojuny raw-settings display` opens the module that declares the matching
 `@menu` in `$VISUAL`, `$EDITOR`, or `nano`. It opens the first match only.
+Matching uses the display name, file stem or file path. `--list` prints every
+page and its file.
 
 ## Defaults
 
@@ -59,6 +61,33 @@ the prompt:
 sudo ojuny flake rollback
 sudo ojuny flake rollback 5
 ```
+
+## Build, shell and develop
+
+```sh
+ojuny build nixpkgs#hello
+ojuny shell zsh fzf ncdu
+ojuny develop
+```
+
+`build` takes one input, `shell` takes one or more, and `develop` passes its
+arguments to `nom develop`. A full flake URI is used unchanged, `owner/repo`
+becomes `github:owner/repo`, a bare official name uses the official table, and
+any other bare name becomes `nixpkgs#name`. Forward flags after `--` or after
+the last input.
+
+## Rebuild
+
+```sh
+ojuny rebuild
+ojuny rebuild boot
+ojuny rebuild switch
+ojuny rebuild rollback [generation]
+```
+
+`rebuild` defaults to `switch`. After activation it runs the configured
+environment reload command before the terminal is held, and starts and stops
+the login splash around the rebuild.
 
 ## Services and logs
 

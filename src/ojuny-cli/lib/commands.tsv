@@ -197,6 +197,10 @@ cmd	flake.rollback	flake_rollback	[generation]	Roll back to a generation	persist
 cmd	flake.generations	flake_generations	generations	List system generations	read	nix	-	-	-	0	0
 cmd	flake.gc	flake_gc	[--dry-run]	Collect garbage	persistent	nix	-	-	-	0	1
 cmd	flake.option	flake_option	<path>	Show an option value	read	nixos-option	-	-	-	0	0
+cat	rebuild	rebuild_subtree	-	Rebuild and activate the system	persistent	nix	-	-	-	1	0
+cmd	rebuild.switch	rebuild_switch	switch	Rebuild and switch now	persistent	nix	-	-	-	1	0
+cmd	rebuild.boot	rebuild_boot	boot	Rebuild for the next boot	persistent	nix	-	-	-	0	0
+cmd	rebuild.rollback	rebuild_rollback	rollback [generation]	Rebuild and roll back a generation	persistent	nix	-	-	-	0	1
 cat	service	service_subtree	-	Systemd services	session	systemctl	-	-	-	0	0
 cmd	service.list	service_list	list	List services	session	systemctl	-	units	-	1	0
 cmd	service.status	service_status	<name>	Show service status	read	systemctl	-	units	-	0	0
@@ -244,8 +248,11 @@ cmd	debug.off	debug_off	off	Disable debug logging	runtime	-	-	-	-	0	0
 cmd	debug.tail	debug_tail	[--lines N]	Show recent debug lines	read	-	-	-	-	0	0
 cmd	debug.clear	debug_clear	clear	Clear the debug log	runtime	-	-	-	-	0	1
 top	status	cmd_status	-	System summary	read	-	-	-	-	0	0
-top	settings	settings_cmd	[page]	Open nix-settings-gui	persistent	nix-settings-gui	-	pages	-	1	0
-top	raw-settings	raw_settings_cmd	<page>	Edit the module for a settings page	persistent	editor	-	pages	-	0	0
+top	build	build_cmd	<input> [-- flags]	Build with nom	persistent	nom	-	-	-	0	0
+top	shell	shell_cmd	<input>... [-- flags]	Open a shell with nom	persistent	nom	-	-	-	0	0
+top	develop	develop_cmd	[args...]	Run nom develop	persistent	nom	-	-	-	0	0
+top	settings	settings_cmd	[--list|page]	Open nix-settings-gui	persistent	nix-settings-gui	-	pages	-	1	0
+top	raw-settings	raw_settings_cmd	[--list|page]	Edit the module for a settings page	persistent	editor	-	pages	-	0	0
 top	notify	notify_cmd	<summary> [body]	Send a desktop notification	runtime	dms	-	-	-	0	0
 top	print-agent-details	agents_cmd	-	Print the agent guide	read	-	-	-	-	0	0
 top	print-system-details	support_cmd	-	Print the support bundle	read	-	-	-	-	0	0

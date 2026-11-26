@@ -28,12 +28,14 @@
         "ojuny-cli": {
           "file": "ojuny-cli.bin",
           "url": "https://github.com/ojuny-project/ojuny-cli/releases/download/v0.2.0/ojuny-cli.bin",
-          "hash": "sha256-T6vHlRDK034g+29OkfZjOPlJZ4+UOA4xNp7KXAK0RH4="
+          "hash": "sha256-T6vHlRDK034g+29OkfZjOPlJZ4+UOA4xNp7KXAK0RH4=",
+          "program": "ojuny"
         },
         "ojuny-patches": {
           "file": "ojuny-patches.bin",
           "url": "https://github.com/ojuny-project/ojuny-cli/releases/download/v0.2.0/ojuny-patches.bin",
-          "hash": "sha256-jnnel3GeMra3dWPMhY+elB02nyBaJRysfUGikzZDNbs="
+          "hash": "sha256-jnnel3GeMra3dWPMhY+elB02nyBaJRysfUGikzZDNbs=",
+          "program": "ojuny-patches"
         }
       }
     },
@@ -44,12 +46,14 @@
         "ojuny-cli": {
           "file": "ojuny-cli.bin",
           "url": "https://github.com/ojuny-project/ojuny-cli/releases/download/v0.2.1/ojuny-cli.bin",
-          "hash": "sha256-Lhqzr/Jphx20X19M4EJERritYsIc9OsLdOPaM5faBnw="
+          "hash": "sha256-Lhqzr/Jphx20X19M4EJERritYsIc9OsLdOPaM5faBnw=",
+          "program": "ojuny"
         },
         "ojuny-patches": {
           "file": "ojuny-patches.bin",
           "url": "https://github.com/ojuny-project/ojuny-cli/releases/download/v0.2.1/ojuny-patches.bin",
-          "hash": "sha256-iigTz9ielnPcP1yOFdzow5IeUemzLX9JWm1T4331qb8="
+          "hash": "sha256-iigTz9ielnPcP1yOFdzow5IeUemzLX9JWm1T4331qb8=",
+          "program": "ojuny-patches"
         }
       }
     }

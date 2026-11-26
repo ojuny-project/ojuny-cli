@@ -73,23 +73,45 @@ ojuny_settings_menus() {
         -not -path '*/node_modules/*' \
         -not -name '_*' 2>/dev/null |
         while IFS= read -r file; do
-            awk -v file="$file" '
-                /@menu/ { inside = 1; next }
+            stem="$(basename "$file" .nix)"
+            awk -v file="$file" -v stem="$stem" '
+                BEGIN { inside = 0; found = 0 }
+                /@menu/ {
+                    if ($0 ~ /displayname[[:space:]]*=/) {
+                        line = $0
+                        sub(/.*displayname[[:space:]]*=[[:space:]]*"/, "", line)
+                        sub(/".*/, "", line)
+                        print line "\t" stem "\t" file
+                        found = 1
+                        inside = 0
+                        next
+                    }
+                    inside = 1
+                    found = 0
+                    next
+                }
                 inside && /displayname[[:space:]]*=/ {
                     line = $0
                     sub(/.*displayname[[:space:]]*=[[:space:]]*"/, "", line)
                     sub(/".*/, "", line)
-                    print line "\t" file
+                    print line "\t" stem "\t" file
+                    found = 1
                     inside = 0
                     next
                 }
-                inside && /\*\// { inside = 0 }
+                inside && /\*\// {
+                    if (!found) print stem "\t" stem "\t" file
+                    inside = 0
+                }
+                END {
+                    if (inside && !found) print stem "\t" stem "\t" file
+                }
             ' "$file"
         done
 }
 
 ojuny_settings_pages() {
-    ojuny_settings_menus | sort -u
+    ojuny_settings_menus | awk -F '\t' '{ print $1 "\t" $3 }' | sort -u
 }
 
 ojuny_find_settings_page() {
@@ -98,7 +120,15 @@ ojuny_find_settings_page() {
 
     exact="$(ojuny_settings_menus | awk -F '\t' -v pattern="$pattern" '
         BEGIN { wanted = tolower(pattern) }
-        tolower($1) == wanted { print $2; exit }
+        {
+            name = tolower($1)
+            stem = tolower($2)
+            file = tolower($3)
+            if (name == wanted || stem == wanted || file == wanted) {
+                print $3
+                exit
+            }
+        }
     ')"
     if [ -n "$exact" ]; then
         printf '%s\n' "$exact"
@@ -107,6 +137,14 @@ ojuny_find_settings_page() {
 
     ojuny_settings_menus | sort -t $'\t' -k1,1 | awk -F '\t' -v pattern="$pattern" '
         BEGIN { wanted = tolower(pattern) }
-        tolower($1) ~ wanted { print $2; exit }
+        {
+            name = tolower($1)
+            stem = tolower($2)
+            file = tolower($3)
+            if (name ~ wanted || stem ~ wanted || file ~ wanted) {
+                print $3
+                exit
+            }
+        }
     '
 }

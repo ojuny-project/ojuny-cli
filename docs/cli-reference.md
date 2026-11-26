@@ -41,6 +41,9 @@ nix shell .#ojuny-cli -c ojuny --help
 | Command | Description |
 | --- | --- |
 | `status` | System summary |
+| `build` | Build with nom |
+| `shell` | Open a shell with nom |
+| `develop` | Run nom develop |
 | `settings` | Open nix-settings-gui |
 | `raw-settings` | Edit the module for a settings page |
 | `notify` | Send a desktop notification |
@@ -87,6 +90,7 @@ nix shell .#ojuny-cli -c ojuny --help
 | `input` | Synthetic input |
 | `run` | Launch an application |
 | `flake` | Flake and system management |
+| `rebuild` | Rebuild and activate the system |
 | `service` | Systemd services |
 | `logs` | Journal logs |
 | `secureboot` | Secure Boot keys and signing |
@@ -482,6 +486,16 @@ Flake and system management
 | `generations` | `generations` | List system generations |
 | `gc` | `[--dry-run]` | Collect garbage |
 | `option` | `<path>` | Show an option value |
+
+### `ojuny rebuild`
+
+Rebuild and activate the system
+
+| Command | Usage | Description |
+| --- | --- | --- |
+| `switch` | `switch` | Rebuild and switch now |
+| `boot` | `boot` | Rebuild for the next boot |
+| `rollback` | `rollback [generation]` | Rebuild and roll back a generation |
 
 ### `ojuny service`
 

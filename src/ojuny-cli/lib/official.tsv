@@ -1,0 +1,21 @@
+# Official Ojuny tools. Columns: name, flake reference, explicit output.
+# An empty output uses the flake's default package.
+ojuny-cli	github:ojuny-project/ojuny-cli	ojuny-cli
+ojuny-patches	github:ojuny-project/ojuny-cli	ojuny-patches-cli
+ojuny-manual	github:ojuny-project/ojuny-manual	
+nix-settings-gui	github:ojuny-project/nix-settings-gui	
+nix-settings-backend	github:ojuny-project/nix-settings-gui	nix-settings-backend
+nix-regedit	github:ojuny-project/nix-regedit	
+nix-shell-gui	github:ojuny-project/nix-shell-gui	
+simple-nix-update-gui	github:ojuny-project/simple-nix-update-gui	
+nix-cleaner	github:ojuny-project/nix-cleaner	
+nix-cache-discovery	github:ojuny-project/nix-cache-discovery	
+nix-builder-discovery	github:ojuny-project/nix-builder-discovery	
+nom-cache-discovery	github:ojuny-project/nom-cache-discovery	
+nix-connect	github:ojuny-project/nix-connect	
+ojuny-desktop	github:ojuny-project/ojuny-desktop	
+ojuny-installer	github:ojuny-project/ojuny-installer	
+ojuny-login-splash	github:ojuny-project/ojuny-login-splash	
+ojuny-welcome	github:ojuny-project/ojuny-welcome	
+raven	github:ojuny-project/raven?ref=nix-flake	
+dux-shell	github:duxlabs-dev/dux-shell	

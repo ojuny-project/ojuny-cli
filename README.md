@@ -89,7 +89,8 @@ Displays page. The page argument is a regular expression.
 
 `ojuny raw-settings displays` finds the first module that declares the matching
 `@menu` and opens it in `$VISUAL`, then `$EDITOR`, then `nano`. It never opens
-more than one file.
+more than one file. Matching uses the menu display name, the file stem and the
+file path. `ojuny raw-settings --list` prints every page and its file.
 
 Persistent values belong in nix-settings-gui. The CLI does not write Nix files.
 
@@ -142,7 +143,9 @@ view.
 host, kernel, hardware, DE/WM, session, backend versions, patch state, paths,
 debug tail, failed units, and a short journal tail. `ojuny crashes` lists
 system-wide coredumps from `coredumpctl`; `ojuny crashes latest` prints the
-newest entry and `ojuny crashes <entry>` prints plaintext details.
+newest entry and `ojuny crashes <entry>` prints plaintext details. A session
+freeze is a hang, not a coredump; the list points at the Raven failure log when
+one exists.
 
 `ojuny debug on|off|status|tail|clear` controls debug logging under
 `$XDG_STATE_HOME/ojuny/debug.log`. Secrets are redacted.
@@ -153,6 +156,40 @@ runs one method, `ojuny ipc watch` streams topic events, and `ojuny ipc serve`
 runs the `socat` listener. The package installs
 `share/systemd/user/ojuny-ipc.service`; enable it with
 `systemctl --user enable --now ojuny-ipc.service`.
+
+## Build, shell and develop
+
+```console
+$ ojuny build nixpkgs#hello
+$ ojuny shell zsh fzf ncdu
+$ ojuny develop
+```
+
+Each command wraps `nom`. `ojuny build` takes one input, `ojuny shell` takes
+one or more, and `ojuny develop` passes its arguments straight to
+`nom develop`. Extra flags are forwarded after `--` or as unrecognized flags
+after the last input.
+
+Input resolution:
+
+- A full flake URI is used unchanged.
+- `owner/repo` becomes `github:owner/repo`.
+- A bare name in the official table uses that table entry.
+- Any other bare name becomes `nixpkgs#name`.
+
+## Rebuild
+
+```console
+$ ojuny rebuild
+$ ojuny rebuild boot
+$ ojuny rebuild switch
+$ ojuny rebuild rollback [generation]
+```
+
+`ojuny rebuild` is `switch`. After a successful activation it runs the
+`environment_reload_command` from the nix-settings-gui config, or
+`OJUNY_ENVIRONMENT_RELOAD`, before the terminal is held. `ojuny-login-splash`
+is started before activation and quit after the reload when it is installed.
 
 ## Limits
 
