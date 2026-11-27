@@ -13,26 +13,32 @@ ojuny_environment_reload_command() {
 }
 
 ojuny_run_environment_reload() {
-    local command status=0
+    local command status=0 before stamp
+    stamp="${XDG_RUNTIME_DIR:-/tmp}/ojuny-shell-reloaded"
+    before="$(cat "$stamp" 2>/dev/null || true)"
     command="$(ojuny_environment_reload_command)"
     [ -n "$command" ] || return 0
     ojuny_exec bash -lc "$command" || status=$?
     if [ "$status" -eq 0 ]; then
         case "$command" in
-        *dms*) ojuny_wait_for_dms || true ;;
+        *dms*) ojuny_wait_for_dms "$before" || true ;;
         esac
     fi
     return "$status"
 }
 
 ojuny_wait_for_dms() {
+    local before="${1:-}"
     local timeout="${OJUNY_DMS_READY_TIMEOUT:-10}"
-    local deadline
+    local stamp deadline now
 
-    command -v dms >/dev/null 2>&1 || return 0
+    stamp="${XDG_RUNTIME_DIR:-/tmp}/ojuny-shell-reloaded"
     deadline=$((SECONDS + timeout))
     while [ "$SECONDS" -lt "$deadline" ]; do
-        dms version >/dev/null 2>&1 && return 0
+        now="$(cat "$stamp" 2>/dev/null || true)"
+        if [ -n "$now" ] && [ "$now" != "$before" ]; then
+            return 0
+        fi
         sleep 0.2
     done
     return 1
@@ -61,6 +67,15 @@ ojuny_rebuild_splash_start() {
     [ "${OJUNY_REBUILD_SPLASH:-1}" = "0" ] && return 0
     local splash
 
+    if command -v systemctl >/dev/null 2>&1 && [ -n "${XDG_RUNTIME_DIR:-}" ] &&
+        systemctl --user cat ojuny-login-splash.service >/dev/null 2>&1; then
+        systemctl --user reset-failed ojuny-login-splash.service >/dev/null 2>&1 || true
+        systemctl --user restart ojuny-login-splash.service >/dev/null 2>&1 || true
+        systemctl --user restart ojuny-login-splash-ready.service >/dev/null 2>&1 || true
+        OJUNY_SPLASH_STARTED=1
+        return 0
+    fi
+
     splash="$(command -v ojuny-login-splash || true)"
     if [ -z "$splash" ]; then
         ojuny_err "ojuny-login-splash not found; rebuild splash skipped"
@@ -73,6 +88,11 @@ ojuny_rebuild_splash_start() {
 ojuny_rebuild_splash_stop() {
     [ "${OJUNY_SPLASH_STARTED:-0}" = "1" ] || return 0
     local splash i
+
+    if command -v systemctl >/dev/null 2>&1 && [ -n "${XDG_RUNTIME_DIR:-}" ] &&
+        systemctl --user cat ojuny-login-splash.service >/dev/null 2>&1; then
+        systemctl --user stop ojuny-login-splash.service >/dev/null 2>&1 || true
+    fi
 
     splash="$(command -v ojuny-login-splash || true)"
     if [ -n "$splash" ]; then

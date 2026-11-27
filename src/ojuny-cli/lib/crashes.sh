@@ -55,7 +55,7 @@ crashes_raven_logs() {
     local dir
     dir="$(crashes_raven_dir)" || return 0
     [ -d "$dir" ] || return 0
-    find "$dir" -maxdepth 1 -type f -name '*failure.log' -printf '%T@ %p\n' 2>/dev/null |
+    find "$dir" -maxdepth 1 -type f \( -name '*failure.log' -o -name '*running.log' \) -printf '%T@ %p\n' 2>/dev/null |
         sort -nr | cut -d' ' -f2-
 }
 
@@ -93,8 +93,12 @@ crashes_list_raven() {
     while IFS= read -r file; do
         [ -n "$file" ] || continue
         index=$((index + 1))
+        case "$file" in
+        *-running.log) note=" (no exit recorded)" ;;
+        *) note="" ;;
+        esac
         printf '%-4s %-19s %s\n' "R$index" \
-            "$(date -r "$file" '+%Y-%m-%d %H:%M:%S' 2>/dev/null)" "$file"
+            "$(date -r "$file" '+%Y-%m-%d %H:%M:%S' 2>/dev/null)" "$file$note"
     done <<EOF
 $logs
 EOF
