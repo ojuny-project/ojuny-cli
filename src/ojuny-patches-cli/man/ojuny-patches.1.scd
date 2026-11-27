@@ -48,17 +48,19 @@ installation.
 *repo* *list*, *repo* *add* <url>, *repo* *remove* <url>
 	Manage the repository list.
 
-*install* <id>
+*install* <pattern>
 	Install a patch and its dependencies. Dependencies are installed first.
-	A dependency cycle exits 6. A missing dependency exits 5.
+	A dependency cycle exits 6. A missing dependency exits 5. The pattern is
+	an exact ID, an ID without the _patch-_ prefix, or an extended regular
+	expression. Several matches exit 6 with the candidate list.
 
-*remove* <id>
+*remove* <pattern>
 	Remove an installed patch after confirmation.
 
-*info* <id>
+*info* <pattern>
 	Show metadata, repository, commit, and install state.
 
-*reinstall* <id>
+*reinstall* <pattern>
 	Remove and install a patch.
 
 # FILES

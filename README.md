@@ -90,7 +90,9 @@ Displays page. The page argument is a regular expression.
 `ojuny raw-settings displays` finds the first module that declares the matching
 `@menu` and opens it in `$VISUAL`, then `$EDITOR`, then `nano`. It never opens
 more than one file. Matching uses the menu display name, the file stem and the
-file path. `ojuny raw-settings --list` prints every page and its file.
+file path; spaces, hyphens and underscores are equivalent. `ojuny raw-settings
+--list` prints an aligned page and file table, and `--json` emits one object per
+page.
 
 Persistent values belong in nix-settings-gui. The CLI does not write Nix files.
 
@@ -141,11 +143,13 @@ view.
 
 `ojuny print-system-details` prints a plaintext support bundle with the flake,
 host, kernel, hardware, DE/WM, session, backend versions, patch state, paths,
-debug tail, failed units, and a short journal tail. `ojuny crashes` lists
-system-wide coredumps from `coredumpctl`; `ojuny crashes latest` prints the
-newest entry and `ojuny crashes <entry>` prints plaintext details. A session
-freeze is a hang, not a coredump; the list points at the Raven failure log when
-one exists.
+debug tail, failed units, and a short journal tail. `ojuny crashes` prints
+three sections: system-wide coredumps from `coredumpctl`, captured backend
+failures, and Raven launch failures. `ojuny crashes latest` prints the newest
+entry, `ojuny crashes <entry>` prints plaintext details, and `ojuny crashes R<n>`
+reads a Raven failure. A session freeze is a hang, not a coredump; the list
+points at the Raven failure log when one exists. Validation failures are not
+recorded as crashes.
 
 `ojuny debug on|off|status|tail|clear` controls debug logging under
 `$XDG_STATE_HOME/ojuny/debug.log`. Secrets are redacted.
@@ -186,10 +190,14 @@ $ ojuny rebuild switch
 $ ojuny rebuild rollback [generation]
 ```
 
-`ojuny rebuild` is `switch`. After a successful activation it runs the
+`ojuny rebuild` is `switch`. After a successful activation it stops a running
+login splash, starts `ojuny-login-splash` when it is installed, runs the
 `environment_reload_command` from the nix-settings-gui config, or
-`OJUNY_ENVIRONMENT_RELOAD`, before the terminal is held. `ojuny-login-splash`
-is started before activation and quit after the reload when it is installed.
+`OJUNY_ENVIRONMENT_RELOAD`, waits for DMS when the reload command mentions it,
+and then quits the splash. The result is printed before the terminal is held.
+Pass `--hold` to force the hold, `--no-hold` to disable it; it is automatic when
+stdin and stderr are a terminal, so a rebuild started from nix-settings-gui
+keeps its terminal open.
 
 ## Limits
 

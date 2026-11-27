@@ -105,6 +105,8 @@ patches_install() {
         return "$OJUNY_EXIT_USAGE"
     }
 
+    id="$(patches_resolve_id "$id")" || return $?
+
     patches_install_one "$id"
 }
 
@@ -116,6 +118,8 @@ patches_remove() {
         ojuny_err "usage: ojuny-patches remove <id>"
         return "$OJUNY_EXIT_USAGE"
     }
+
+    id="$(patches_resolve_id "$id")" || return $?
 
     if ! patches_id_valid "$id"; then
         ojuny_err "invalid patch id: $id"
@@ -142,6 +146,8 @@ patches_reinstall() {
         ojuny_err "usage: ojuny-patches reinstall <id>"
         return "$OJUNY_EXIT_USAGE"
     }
+
+    id="$(patches_resolve_id "$id")" || return $?
 
     dest="$(ojuny_patch_dir)/$id.nix"
     if [ -f "$dest" ]; then

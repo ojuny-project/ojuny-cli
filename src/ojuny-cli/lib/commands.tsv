@@ -252,7 +252,7 @@ top	build	build_cmd	<input> [-- flags]	Build with nom	persistent	nom	-	-	-	0	0
 top	shell	shell_cmd	<input>... [-- flags]	Open a shell with nom	persistent	nom	-	-	-	0	0
 top	develop	develop_cmd	[args...]	Run nom develop	persistent	nom	-	-	-	0	0
 top	settings	settings_cmd	[--list|page]	Open nix-settings-gui	persistent	nix-settings-gui	-	pages	-	1	0
-top	raw-settings	raw_settings_cmd	[--list|page]	Edit the module for a settings page	persistent	editor	-	pages	-	0	0
+top	raw-settings	raw_settings_cmd	[--list|<page>]	Edit the module for a settings page	persistent	editor	-	pages	-	0	0
 top	notify	notify_cmd	<summary> [body]	Send a desktop notification	runtime	dms	-	-	-	0	0
 top	print-agent-details	agents_cmd	-	Print the agent guide	read	-	-	-	-	0	0
 top	print-system-details	support_cmd	-	Print the support bundle	read	-	-	-	-	0	0

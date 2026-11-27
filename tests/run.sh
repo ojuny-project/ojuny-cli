@@ -10,8 +10,9 @@ trap 'rm -rf "$tmp"' EXIT
 export HOME="$tmp/home"
 export XDG_CONFIG_HOME="$tmp/config"
 export XDG_CACHE_HOME="$tmp/cache"
+export XDG_RUNTIME_DIR="$tmp/runtime"
 export TEST_LOG="$tmp/backends.log"
-mkdir -p "$HOME" "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME" "$tmp/bin"
+mkdir -p "$HOME" "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME" "$XDG_RUNTIME_DIR" "$tmp/bin"
 
 fail() {
     printf 'FAIL: %s\n' "$*" >&2
@@ -43,10 +44,25 @@ EOF
 
 for name in mmsg dms nmcli mmcli bluetoothctl wpctl playerctl rfkill \
     udisksctl systemctl loginctl journalctl sbctl upower wtype ydotool nom \
-    ojuny-login-splash nix-settings-gui ojuny-screenshot-menu ojuny-capture-text ojuny-capture-qr \
+    nix-settings-gui ojuny-screenshot-menu ojuny-capture-text ojuny-capture-qr \
     ojuny-screenshot-edit socat; do
     write_fake "$name"
 done
+
+cat >"$tmp/bin/ojuny-login-splash" <<EOF
+#!$BASH
+printf '%s:%s\n' "ojuny-login-splash" "\$*" >>"\$TEST_LOG"
+case "\$1" in
+--seconds)
+    mkdir -p "\$XDG_RUNTIME_DIR/ojuny-login-splash"
+    : >"\$XDG_RUNTIME_DIR/ojuny-login-splash/\$\$.sock"
+    ;;
+--quit)
+    rm -f "\$XDG_RUNTIME_DIR/ojuny-login-splash/"*.sock
+    ;;
+esac
+EOF
+chmod +x "$tmp/bin/ojuny-login-splash"
 
 cat >"$tmp/bin/coredumpctl" <<EOF
 #!$BASH
@@ -142,8 +158,14 @@ esac
 EOF
 chmod +x "$tmp/bin/loginctl"
 
-write_fake nixos-rebuild
 write_fake nix-env
+
+cat >"$tmp/bin/nixos-rebuild" <<EOF
+#!$BASH
+printf '%s:%s\n' "nixos-rebuild" "\$*" >>"\$TEST_LOG"
+[ -z "\${FAIL_REBUILD:-}" ] || exit 1
+EOF
+chmod +x "$tmp/bin/nixos-rebuild"
 
 cat >"$tmp/bin/systemctl" <<EOF
 #!$BASH
@@ -339,6 +361,41 @@ assert_contains "$(ojuny_cli crashes)" "fake-exe"
 assert_contains "$(ojuny_cli crashes latest)" "fake crash details"
 assert_contains "$(ojuny_cli crashes 1)" "fake crash details"
 
+mkdir -p "$tmp/bin-empty"
+cat >"$tmp/bin-empty/coredumpctl" <<EOF
+#!$BASH
+case "\$*" in
+    "list --json=short --no-pager") printf '%s\n' '[]' ;;
+    "info --no-pager"*) exit 1 ;;
+esac
+EOF
+chmod +x "$tmp/bin-empty/coredumpctl"
+
+captured_state="$tmp/captured-state"
+mkdir -p "$captured_state/ojuny/crashes"
+printf 'ojuny crash\n  command: demo\n' >"$captured_state/ojuny/crashes/20261127T000000Z-1.log"
+captured_out="$(PATH="$tmp/bin-empty:$PATH" XDG_STATE_HOME="$captured_state" ojuny_cli crashes)"
+assert_contains "$captured_out" "CAPTURED FAILURES"
+assert_contains "$captured_out" "demo"
+
+raven_state="$tmp/raven-state"
+mkdir -p "$raven_state/ojuny/raven"
+printf 'Native process exited with status 4294967295\nExit status: 255\n' \
+    >"$raven_state/ojuny/raven/20261127-001042-failure.log"
+raven_out="$(PATH="$tmp/bin-empty:$PATH" XDG_STATE_HOME="$raven_state" ojuny_cli crashes 2>&1)"
+assert_contains "$raven_out" "COREDUMPS"
+assert_contains "$raven_out" "CAPTURED FAILURES"
+assert_contains "$raven_out" "RAVEN FAILURES"
+assert_contains "$raven_out" "20261127-001042-failure.log"
+assert_contains "$raven_out" "hint: a session freeze is a hang"
+assert_contains "$(PATH="$tmp/bin-empty:$PATH" XDG_STATE_HOME="$raven_state" ojuny_cli crashes latest)" \
+    "Native process exited with status 4294967295"
+assert_contains "$(PATH="$tmp/bin-empty:$PATH" XDG_STATE_HOME="$raven_state" ojuny_cli crashes R1)" \
+    "Exit status: 255"
+raven_json="$(PATH="$tmp/bin-empty:$PATH" XDG_STATE_HOME="$raven_state" ojuny_cli --json crashes)"
+printf '%s' "$raven_json" | jq -e '(.data.raven | length) == 1 and (.data.coredumps | length) == 0' >/dev/null ||
+    fail "crashes JSON does not separate Raven failures from coredumps: $raven_json"
+
 ojuny_cli debug on
 ojuny_cli --dry-run wifi connect mynet supersecret >/dev/null 2>&1
 assert_contains "$(ojuny_cli debug tail)" "[redacted]"
@@ -350,11 +407,58 @@ ojuny_cli debug off
 mkdir -p "$tmp/flake/modules/07-system"
 printf '{ outputs = _: { }; }\n' >"$tmp/flake/flake.nix"
 printf '/* @menu displayname = "Secure Boot"; */\n{ ... }: { }\n' >"$tmp/flake/modules/07-system/00-secureboot.nix"
+printf '/* @menu displayname = "Networking and VPN"; */\n{ ... }: { }\n' >"$tmp/flake/modules/07-system/02-networking.nix"
 printf '/* @menu icon = "x"; */\n{ ... }: { }\n' >"$tmp/flake/modules/07-system/00-noname.nix"
-assert_contains "$(OJUNY_FLAKE="$tmp/flake" ojuny_cli raw-settings --list)" "Secure Boot"
+
+list="$(OJUNY_FLAKE="$tmp/flake" ojuny_cli raw-settings --list)"
+assert_contains "$list" "PAGE"
+assert_contains "$list" "FILE"
+assert_contains "$list" "Secure Boot"
+assert_contains "$list" "Networking and VPN"
+assert_contains "$list" "00-secureboot.nix"
+if printf '%s\n' "$list" | grep -q $'\t'; then
+    fail "raw-settings --list still uses tabs"
+fi
+printf '%s\n' "$list" | awk 'NR > 1 { print index($0, $NF) }' | sort -u |
+    awk 'END { exit (NR == 1 ? 0 : 1) }' ||
+    fail "raw-settings --list file column is not aligned"
+
+status=0
+out="$(OJUNY_FLAKE="$tmp/flake" ojuny_cli raw-settings 2>&1)" || status=$?
+[ "$status" -eq 2 ] || fail "raw-settings without a page should exit 2, got $status"
+assert_contains "$out" "usage: ojuny raw-settings [--list|<page>]"
+assert_contains "$out" "PAGE"
+assert_contains "$out" "Secure Boot"
+
+status=0
+out="$(OJUNY_FLAKE="$tmp/flake" ojuny_cli raw-settings nope 2>&1)" || status=$?
+[ "$status" -eq 5 ] || fail "an unknown raw-settings page should exit 5, got $status"
+assert_contains "$out" "no settings page matches: nope"
+assert_contains "$out" "PAGE"
+assert_contains "$out" "Networking and VPN"
+
 assert_contains "$(OJUNY_FLAKE="$tmp/flake" ojuny_cli --dry-run raw-settings secureboot 2>&1)" "00-secureboot.nix"
+assert_contains "$(OJUNY_FLAKE="$tmp/flake" ojuny_cli --dry-run raw-settings secure-boot 2>&1)" "00-secureboot.nix"
+assert_contains "$(OJUNY_FLAKE="$tmp/flake" ojuny_cli --dry-run raw-settings secure_boot 2>&1)" "00-secureboot.nix"
 assert_contains "$(OJUNY_FLAKE="$tmp/flake" ojuny_cli --dry-run raw-settings "secure boot" 2>&1)" "00-secureboot.nix"
 assert_contains "$(OJUNY_FLAKE="$tmp/flake" ojuny_cli --dry-run raw-settings 00-noname 2>&1)" "00-noname.nix"
+
+pages_json="$(OJUNY_FLAKE="$tmp/flake" ojuny_cli --json raw-settings --list)"
+printf '%s' "$pages_json" | jq -e '.data.pages | map(.page) | index("Secure Boot") != null' >/dev/null ||
+    fail "raw-settings --list JSON has no page array"
+if OJUNY_FLAKE="$tmp/flake" ojuny_cli __complete raw-settings | grep -qx 'PAGE'; then
+    fail "raw-settings completion includes the table header"
+fi
+
+mkdir -p "$tmp/validation-state"
+status=0
+XDG_STATE_HOME="$tmp/validation-state" OJUNY_FLAKE="$tmp/flake" \
+    ojuny_cli raw-settings nope >/dev/null 2>&1 || status=$?
+[ "$status" -eq 5 ] || fail "raw-settings nope should exit 5, got $status"
+if [ -d "$tmp/validation-state/ojuny/crashes" ] &&
+    find "$tmp/validation-state/ojuny/crashes" -type f -name '*.log' -print -quit | grep -q .; then
+    fail "a validation failure was recorded as a crash"
+fi
 
 assert_contains "$(ojuny_cli --dry-run build nixpkgs#hello 2>&1)" "nom build nixpkgs#hello"
 assert_contains "$(ojuny_cli --dry-run build hello 2>&1)" "nom build nixpkgs#hello"
@@ -369,18 +473,109 @@ assert_contains "$(OJUNY_FLAKE="$tmp/flake" OJUNY_HOST=host ojuny_cli --dry-run 
 assert_contains "$(OJUNY_FLAKE="$tmp/flake" OJUNY_HOST=host ojuny_cli --dry-run rebuild boot 2>&1)" "nixos-rebuild boot --flake $tmp/flake#host |& nom"
 
 : >"$TEST_LOG"
-OJUNY_FLAKE="$tmp/flake" OJUNY_HOST=host \
+output="$(OJUNY_FLAKE="$tmp/flake" OJUNY_HOST=host \
     OJUNY_ENVIRONMENT_RELOAD='printf "reload\n" >> "$TEST_LOG"' \
-    ojuny_cli rebuild >/dev/null
+    OJUNY_REBUILD_HOLD=1 \
+    OJUNY_REBUILD_HOLD_COMMAND='printf "hold\n" | tee -a "$TEST_LOG"' \
+    ojuny_cli rebuild 2>&1)"
 rebuild_line="$(grep -n '^nixos-rebuild:' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
+stop_login_line="$(grep -n '^systemctl:--user stop ojuny-login-splash' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
 start_line="$(grep -n '^ojuny-login-splash:--seconds' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
 reload_line="$(grep -n '^reload$' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
 quit_line="$(grep -n '^ojuny-login-splash:--quit' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
-[ -n "$rebuild_line" ] && [ -n "$start_line" ] && [ -n "$reload_line" ] && [ -n "$quit_line" ] ||
-    fail "rebuild, splash start, reload and splash quit did not all run"
-[ "$rebuild_line" -lt "$start_line" ] || fail "the splash hid the build instead of following it"
+hold_line="$(grep -n '^hold$' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
+[ -n "$rebuild_line" ] && [ -n "$stop_login_line" ] && [ -n "$start_line" ] &&
+    [ -n "$reload_line" ] && [ -n "$quit_line" ] && [ -n "$hold_line" ] ||
+    fail "rebuild, login stop, splash start, reload, splash quit and hold did not all run"
+[ "$rebuild_line" -lt "$stop_login_line" ] || fail "the login splash was stopped before activation"
+[ "$stop_login_line" -lt "$start_line" ] || fail "the login splash was stopped after the rebuild splash started"
 [ "$start_line" -lt "$reload_line" ] || fail "the splash started after the environment reload"
 [ "$reload_line" -lt "$quit_line" ] || fail "splash quit before the environment reload"
+[ "$quit_line" -lt "$hold_line" ] || fail "the hold ran before the splash quit"
+result_line="$(printf '%s\n' "$output" | grep -n 'result: ok' | cut -d: -f1 | sed -n '1p')"
+hold_output_line="$(printf '%s\n' "$output" | grep -n '^hold$' | cut -d: -f1 | sed -n '1p')"
+[ -n "$result_line" ] && [ -n "$hold_output_line" ] &&
+    [ "$result_line" -lt "$hold_output_line" ] ||
+    fail "the hold ran before the rebuild result was printed"
+
+: >"$TEST_LOG"
+status=0
+output="$(FAIL_REBUILD=1 OJUNY_FLAKE="$tmp/flake" OJUNY_HOST=host \
+    OJUNY_REBUILD_HOLD=1 \
+    OJUNY_REBUILD_HOLD_COMMAND='printf "hold\n" | tee -a "$TEST_LOG"' \
+    ojuny_cli rebuild 2>&1)" || status=$?
+[ "$status" -ne 0 ] || fail "a failed rebuild should not exit 0"
+assert_contains "$output" "result: failed"
+assert_contains "$output" "hold"
+[ -n "$(grep '^hold$' "$TEST_LOG" || true)" ] || fail "a failed rebuild did not hold the terminal"
+if grep -q '^ojuny-login-splash:' "$TEST_LOG"; then
+    fail "the splash ran on a failed rebuild"
+fi
+
+: >"$TEST_LOG"
+status=0
+output="$(OJUNY_FLAKE="$tmp/flake" OJUNY_HOST=host \
+    OJUNY_ENVIRONMENT_RELOAD='exit 7' \
+    OJUNY_REBUILD_HOLD=1 \
+    OJUNY_REBUILD_HOLD_COMMAND='printf "hold\n" | tee -a "$TEST_LOG"' \
+    ojuny_cli rebuild 2>&1)" || status=$?
+[ "$status" -eq 7 ] || fail "a failed environment reload should keep exit 7, got $status"
+assert_contains "$output" "result: failed"
+start_line="$(grep -n '^ojuny-login-splash:--seconds' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
+quit_line="$(grep -n '^ojuny-login-splash:--quit' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
+hold_line="$(grep -n '^hold$' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
+[ -n "$start_line" ] && [ -n "$quit_line" ] && [ -n "$hold_line" ] ||
+    fail "a failed reload did not start, stop and hold"
+[ "$start_line" -lt "$quit_line" ] && [ "$quit_line" -lt "$hold_line" ] ||
+    fail "a failed reload ran the splash stop and hold out of order"
+
+: >"$TEST_LOG"
+OJUNY_FLAKE="$tmp/flake" OJUNY_HOST=host \
+    OJUNY_ENVIRONMENT_RELOAD='printf "reload\n" >> "$TEST_LOG"; true # dms' \
+    ojuny_cli rebuild >/dev/null
+reload_line="$(grep -n '^reload$' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
+dms_line="$(grep -n '^dms:version' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
+quit_line="$(grep -n '^ojuny-login-splash:--quit' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
+[ -n "$reload_line" ] && [ -n "$dms_line" ] && [ -n "$quit_line" ] ||
+    fail "the DMS readiness wait did not run"
+[ "$reload_line" -lt "$dms_line" ] && [ "$dms_line" -lt "$quit_line" ] ||
+    fail "the splash quit before DMS was ready"
+
+mkdir -p "$XDG_RUNTIME_DIR/ojuny-login-splash"
+: >"$XDG_RUNTIME_DIR/ojuny-login-splash/login.sock"
+: >"$TEST_LOG"
+OJUNY_FLAKE="$tmp/flake" OJUNY_HOST=host ojuny_cli rebuild >/dev/null
+stop_login_line="$(grep -n '^systemctl:--user stop ojuny-login-splash' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
+start_line="$(grep -n '^ojuny-login-splash:--seconds' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
+quit_line="$(grep -n '^ojuny-login-splash:--quit' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
+[ -n "$stop_login_line" ] && [ -n "$start_line" ] && [ -n "$quit_line" ] ||
+    fail "a running login splash was not stopped"
+[ "$stop_login_line" -lt "$start_line" ] && [ "$quit_line" -lt "$start_line" ] ||
+    fail "the login splash stop ran after the rebuild splash started"
+
+mkdir -p "$tmp/bin-slow"
+cat >"$tmp/bin-slow/ojuny-login-splash" <<EOF
+#!$BASH
+printf '%s:%s\n' "ojuny-login-splash" "\$*" >>"\$TEST_LOG"
+case "\$1" in
+--seconds)
+    mkdir -p "\$XDG_RUNTIME_DIR/ojuny-login-splash"
+    : >"\$XDG_RUNTIME_DIR/ojuny-login-splash/\$\$.sock"
+    ;;
+--quit)
+    sleep 30
+    ;;
+esac
+EOF
+chmod +x "$tmp/bin-slow/ojuny-login-splash"
+rm -f "$XDG_RUNTIME_DIR/ojuny-login-splash/"*.sock
+: >"$TEST_LOG"
+start=$SECONDS
+PATH="$tmp/bin-slow:$PATH" OJUNY_FLAKE="$tmp/flake" OJUNY_HOST=host \
+    OJUNY_SPLASH_QUIT_TIMEOUT=1 ojuny_cli rebuild >/dev/null 2>&1 || status=$?
+elapsed=$((SECONDS - start))
+[ "$elapsed" -lt 8 ] || fail "a stuck splash quit blocked the rebuild for ${elapsed}s"
+rm -f "$XDG_RUNTIME_DIR/ojuny-login-splash/"*.sock
 
 assert_contains "$("$OJUNY_PATCHES_BIN" --help)" "Usage: ojuny-patches"
 assert_contains "$("$OJUNY_PATCHES_BIN" --version)" "ojuny-patches"
@@ -389,13 +584,19 @@ assert_contains "$("$OJUNY_PATCHES_BIN" repo list)" "https://github.com/ojuny-pr
 flake="$tmp/flake"
 registry="$tmp/registry"
 mkdir -p "$flake/modules/patches" "$registry/modules/patches"
-mkdir -p "$registry/patch-base" "$registry/patch-demo" "$registry/patch-cycle-a" "$registry/patch-cycle-b"
+mkdir -p "$registry/patch-base" "$registry/patch-demo" "$registry/patch-cycle-a" "$registry/patch-cycle-b" "$registry/patch-zed" "$registry/patch-zed-extra"
 
 printf '{ ... }: { flake.modules.nixos.patch-base = { }: { }; }\n' >"$registry/modules/patches/patch-base.nix"
 printf 'name: Base\nid: patch-base\ndescription: Base patch\nversion: 1\n' >"$registry/patch-base/metadata.md"
 
 printf '{ ... }: { flake.modules.nixos.patch-demo = { }: { }; }\n' >"$registry/modules/patches/patch-demo.nix"
 printf 'name: Demo\nid: patch-demo\ndescription: Demo patch\ndependencies: patch-base\nversion: 1\n' >"$registry/patch-demo/metadata.md"
+
+printf '{ ... }: { flake.modules.nixos.patch-zed = { }: { }; }\n' >"$registry/modules/patches/patch-zed.nix"
+printf 'name: Zed\nid: patch-zed\ndescription: Zed patch\nversion: 1\n' >"$registry/patch-zed/metadata.md"
+
+printf '{ ... }: { flake.modules.nixos.patch-zed-extra = { }: { }; }\n' >"$registry/modules/patches/patch-zed-extra.nix"
+printf 'name: Zed Extra\nid: patch-zed-extra\ndescription: Zed extra patch\nversion: 1\n' >"$registry/patch-zed-extra/metadata.md"
 
 printf '{ ... }: { flake.modules.nixos.patch-cycle-a = { }: { }; }\n' >"$registry/modules/patches/patch-cycle-a.nix"
 printf 'name: Cycle A\nid: patch-cycle-a\ndescription: Cycle A\ndependencies: patch-cycle-b\nversion: 1\n' >"$registry/patch-cycle-a/metadata.md"
@@ -413,15 +614,53 @@ git -C "$registry" commit -qm initial
 "$OJUNY_PATCHES_BIN" configure local_repository "$flake" >/dev/null
 "$OJUNY_PATCHES_BIN" sync "$registry" >/dev/null
 
-assert_contains "$("$OJUNY_PATCHES_BIN" list available)" "patch-demo"
-"$OJUNY_PATCHES_BIN" install patch-demo >/dev/null
+available="$("$OJUNY_PATCHES_BIN" list available)"
+assert_contains "$available" "ID"
+assert_contains "$available" "NAME"
+assert_contains "$available" "SOURCE"
+assert_contains "$available" "patch-demo"
+case "$available" in
+*$'\t'*) fail "list available still prints tabs" ;;
+esac
+printf '%s\n' "$available" |
+    awk 'NR == 1 { header = index($0, "NAME") } /^patch-demo/ { row = index($0, "Demo") } END { exit !(header && header == row) }' ||
+    fail "list available columns are not aligned"
+
+"$OJUNY_PATCHES_BIN" install demo >/dev/null
 [ -f "$flake/modules/patches/patch-base.nix" ] || fail "base dependency was not installed"
 [ -f "$flake/modules/patches/patch-demo.nix" ] || fail "demo patch was not installed"
-assert_contains "$("$OJUNY_PATCHES_BIN" list installed)" "patch-demo"
+
+installed="$("$OJUNY_PATCHES_BIN" list installed)"
+assert_contains "$installed" "STATUS"
+assert_contains "$installed" "patch-demo"
+case "$installed" in
+*$'\t'*) fail "list installed still prints tabs" ;;
+esac
+printf '%s\n' "$installed" |
+    awk 'NR == 1 { header = index($0, "NAME") } /^patch-demo/ { row = index($0, "Demo") } END { exit !(header && header == row) }' ||
+    fail "list installed columns are not aligned"
+
 assert_contains "$("$OJUNY_PATCHES_BIN" info patch-demo)" "dependencies: patch-base"
+assert_contains "$("$OJUNY_PATCHES_BIN" info zed)" "id: patch-zed"
+
+"$OJUNY_PATCHES_BIN" install ZED >/dev/null
+[ -f "$flake/modules/patches/patch-zed.nix" ] || fail "the prefixless uppercase install failed"
+"$OJUNY_PATCHES_BIN" install '^patch-zed-extra$' >/dev/null
+[ -f "$flake/modules/patches/patch-zed-extra.nix" ] || fail "the anchored regex install failed"
+assert_status 6 "$OJUNY_PATCHES_BIN" install 'zed.*'
+assert_status 6 "$OJUNY_PATCHES_BIN" install '^patch-ze'
+[ ! -f "$flake/modules/patches/patch-zed-bad.nix" ] || fail "an ambiguous pattern installed a patch"
+assert_status 5 "$OJUNY_PATCHES_BIN" install 'no-such-patch'
+assert_status 5 "$OJUNY_PATCHES_BIN" install '['
+"$OJUNY_PATCHES_BIN" --yes remove zed-extra >/dev/null
+[ ! -f "$flake/modules/patches/patch-zed-extra.nix" ] || fail "the prefixless remove failed"
+"$OJUNY_PATCHES_BIN" --yes reinstall zed >/dev/null
+[ -f "$flake/modules/patches/patch-zed.nix" ] || fail "the prefixless reinstall failed"
+assert_status 6 "$OJUNY_PATCHES_BIN" install 'demo|zed'
+
 assert_status 6 "$OJUNY_PATCHES_BIN" install patch-cycle-a
 [ ! -f "$flake/modules/patches/patch-cycle-a.nix" ] || fail "cycle patch was installed"
-"$OJUNY_PATCHES_BIN" --yes remove patch-demo >/dev/null
+"$OJUNY_PATCHES_BIN" --yes remove demo >/dev/null
 [ ! -f "$flake/modules/patches/patch-demo.nix" ] || fail "demo patch was not removed"
 
 profile="$tmp/profiles/system"

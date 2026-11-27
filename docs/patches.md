@@ -56,13 +56,20 @@ installed first, recursively. Cycles are rejected.
 ojuny-patches sync [repo]
 ojuny-patches list available
 ojuny-patches list installed
-ojuny-patches info <id>
-ojuny-patches install <id>
-ojuny-patches remove <id>
-ojuny-patches reinstall <id>
+ojuny-patches info <pattern>
+ojuny-patches install <pattern>
+ojuny-patches remove <pattern>
+ojuny-patches reinstall <pattern>
 ojuny-patches configure local_repository <path>
 ojuny-patches configure patch_directory <path>
 ```
+
+`list available` and `list installed` print aligned `ID`, `NAME` and
+`SOURCE`/`STATUS` columns. A pattern may be an exact ID, an ID without the
+`patch-` prefix, or an extended regular expression. Matching is
+case-insensitive against both the full ID and the unprefixed name. A pattern
+that matches several patches prints the candidates and exits with the conflict
+status. Dependency IDs are always exact.
 
 ## Enabling
 

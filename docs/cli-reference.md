@@ -621,7 +621,11 @@ nix shell .#ojuny-patches-cli -c ojuny-patches --help
 | `list available\|installed` | List patches |
 | `configure <key> <value>` | Set local_repository or patch_directory |
 | `repo list\|add\|remove` | Manage repositories |
-| `install <id>` | Install a patch and its dependencies |
-| `remove <id>` | Remove an installed patch |
-| `info <id>` | Show patch information |
-| `reinstall <id>` | Remove and install a patch |
+| `install <pattern>` | Install a patch and its dependencies |
+| `remove <pattern>` | Remove an installed patch |
+| `info <pattern>` | Show patch information |
+| `reinstall <pattern>` | Remove and install a patch |
+
+A pattern is an exact ID, an ID without the `patch-` prefix, or an extended
+regular expression. Several matches exit 6 with the candidate list. The
+`list` commands print aligned ID, NAME and SOURCE/STATUS columns.

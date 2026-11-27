@@ -74,9 +74,11 @@ argument has a useful default, such as *ojuny dux* printing status or
 	Open *nix-settings-gui*, optionally with *--page* <page>. Without a page it
 	opens the main window.
 
-*raw-settings* <page>
+*raw-settings* [*--list*|<page>]
 	Find the first module that declares the matching *@menu* and open it in
-	*$VISUAL*, then *$EDITOR*, then *nano*.
+	*$VISUAL*, then *$EDITOR*, then *nano*. Matching treats spaces, hyphens
+	and underscores as equivalent. *--list* prints an aligned page and file
+	table.
 
 *notify* <summary> [body] [flags]
 	Send a desktop notification through *dms notify*. Flags follow
@@ -96,10 +98,12 @@ argument has a useful default, such as *ojuny dux* printing status or
 	tail.
 
 *crashes* [entry|latest]
-	List system-wide crashes from *coredumpctl*. *crashes* *latest* prints the
-	newest entry, and *crashes* <entry> accepts an index, PID, or cursor and
-	prints plaintext details suitable for an LLM. Permission failures print a
-	sudo hint; the CLI never escalates.
+	List coredumps from *coredumpctl*, captured backend failures, and Raven
+	launch failures in separate sections. *crashes* *latest* prints the newest
+	entry, and *crashes* <entry> accepts an index, PID, or cursor and prints
+	plaintext details suitable for an LLM. *crashes* *R<n>* reads a Raven
+	failure. Validation failures are not recorded as crashes. Permission
+	failures print a sudo hint; the CLI never escalates.
 
 *commands*
 	Print the command catalog. With *--json* it emits the machine-readable
@@ -285,8 +289,9 @@ argument has a useful default, such as *ojuny dux* printing status or
 *nix-settings-gui --page displays*. The page argument is a regular expression.
 
 *ojuny raw-settings displays* scans the flake for *@menu* declarations, takes
-the first match, and opens that module in the user's editor. *--list* prints
-the pages and files without opening anything.
+the first match, and opens that module in the user's editor. Matching ignores
+case, spaces, hyphens and underscores. *--list* prints an aligned page and file
+table without opening anything; the same table follows an unknown page.
 
 # JSON
 

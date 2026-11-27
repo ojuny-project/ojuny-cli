@@ -18,8 +18,9 @@ ojuny settings bar
 
 `ojuny raw-settings display` opens the module that declares the matching
 `@menu` in `$VISUAL`, `$EDITOR`, or `nano`. It opens the first match only.
-Matching uses the display name, file stem or file path. `--list` prints every
-page and its file.
+Matching uses the display name, file stem or file path and treats spaces,
+hyphens and underscores as equivalent. `--list` prints an aligned page and file
+table.
 
 ## Defaults
 
@@ -85,9 +86,11 @@ ojuny rebuild switch
 ojuny rebuild rollback [generation]
 ```
 
-`rebuild` defaults to `switch`. After activation it runs the configured
-environment reload command before the terminal is held, and starts and stops
-the login splash around the rebuild.
+`rebuild` defaults to `switch`. After activation it stops a running login
+splash, starts the login splash, runs the configured environment reload command,
+waits for DMS when the reload command mentions it, and stops the splash. The
+result is printed before the terminal is held. The hold is automatic when stdin
+and stderr are a terminal, and `--hold` or `--no-hold` overrides it.
 
 ## Services and logs
 
@@ -221,8 +224,11 @@ ojuny ipc call status
 ```
 
 `print-system-details` is plaintext by default and includes the current DE/WM.
-`crashes` is system-wide through `coredumpctl`. `ipc` exposes a local Unix
-socket at `$XDG_RUNTIME_DIR/ojuny/ipc.sock` with newline-delimited JSON.
+`crashes` prints coredumps, captured backend failures, and Raven launch
+failures as separate sections. `crashes latest` prints the newest of those, and
+`crashes R<n>` reads a Raven failure. Validation failures are not recorded as
+crashes. `ipc` exposes a local Unix socket at
+`$XDG_RUNTIME_DIR/ojuny/ipc.sock` with newline-delimited JSON.
 
 ## Exit codes
 

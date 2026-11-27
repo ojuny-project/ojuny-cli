@@ -29,12 +29,18 @@ raw_settings_cmd() {
     local page="${1:-}"
 
     if [ "$page" = "--list" ]; then
-        ojuny_settings_pages
+        if ojuny_is_json; then
+            ojuny_settings_pages | jq -Rn '{pages: [inputs | split("\t") | {page: .[0], file: .[1]}]}'
+        else
+            ojuny_settings_pages_table
+        fi
         return 0
     fi
 
     if [ -z "$page" ]; then
-        ojuny_usage_error "usage: ojuny raw-settings <page>"
+        ojuny_err "usage: ojuny raw-settings [--list|<page>]"
+        printf '  available:\n' >&2
+        ojuny_settings_pages_table | sed 's/^/    /' >&2
         return "$OJUNY_EXIT_USAGE"
     fi
 
@@ -43,7 +49,7 @@ raw_settings_cmd() {
     if [ -z "$file" ]; then
         ojuny_err "no settings page matches: $page"
         printf '  available:\n' >&2
-        ojuny_settings_pages | sed 's/^/    /' >&2
+        ojuny_settings_pages_table | sed 's/^/    /' >&2
         return "$OJUNY_EXIT_VALIDATION"
     fi
 
@@ -114,17 +120,38 @@ ojuny_settings_pages() {
     ojuny_settings_menus | awk -F '\t' '{ print $1 "\t" $3 }' | sort -u
 }
 
+ojuny_settings_pages_table() {
+    ojuny_settings_pages | awk -F '\t' '
+        BEGIN { width = 4 }
+        {
+            rows[NR] = $1 "\t" $2
+            if (length($1) > width) width = length($1)
+        }
+        END {
+            printf "%-*s  %s\n", width, "PAGE", "FILE"
+            for (i = 1; i <= NR; i++) {
+                split(rows[i], cell, "\t")
+                printf "%-*s  %s\n", width, cell[1], cell[2]
+            }
+        }'
+}
+
 ojuny_find_settings_page() {
     local pattern="$1"
     local exact
 
     exact="$(ojuny_settings_menus | awk -F '\t' -v pattern="$pattern" '
-        BEGIN { wanted = tolower(pattern) }
+        function normal(value) {
+            value = tolower(value)
+            gsub(/[[:space:]_-]/, "", value)
+            return value
+        }
+        BEGIN {
+            wanted = normal(pattern)
+            if (wanted == "") exit
+        }
         {
-            name = tolower($1)
-            stem = tolower($2)
-            file = tolower($3)
-            if (name == wanted || stem == wanted || file == wanted) {
+            if (normal($1) == wanted || normal($2) == wanted || normal($3) == wanted) {
                 print $3
                 exit
             }
@@ -136,12 +163,17 @@ ojuny_find_settings_page() {
     fi
 
     ojuny_settings_menus | sort -t $'\t' -k1,1 | awk -F '\t' -v pattern="$pattern" '
-        BEGIN { wanted = tolower(pattern) }
+        function normal(value) {
+            value = tolower(value)
+            gsub(/[[:space:]_-]/, "", value)
+            return value
+        }
+        BEGIN {
+            wanted = normal(pattern)
+            if (wanted == "") exit
+        }
         {
-            name = tolower($1)
-            stem = tolower($2)
-            file = tolower($3)
-            if (name ~ wanted || stem ~ wanted || file ~ wanted) {
+            if (index(normal($1), wanted) || index(normal($2), wanted) || index(normal($3), wanted)) {
                 print $3
                 exit
             }
