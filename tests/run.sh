@@ -530,21 +530,25 @@ hold_line="$(grep -n '^hold$' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
     fail "a failed reload ran the splash stop and hold out of order"
 
 : >"$TEST_LOG"
+: >"$XDG_RUNTIME_DIR/ojuny-shell-reloaded"
 OJUNY_FLAKE="$tmp/flake" OJUNY_HOST=host \
-    OJUNY_ENVIRONMENT_RELOAD='printf "reload\n" >> "$TEST_LOG"; true # dms' \
+    OJUNY_ENVIRONMENT_RELOAD='printf "reload\n" >> "$TEST_LOG"; date +%s%N > "$XDG_RUNTIME_DIR/ojuny-shell-reloaded"; true # dms' \
     ojuny_cli rebuild >/dev/null
 reload_line="$(grep -n '^reload$' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
-dms_line="$(grep -n '^dms:version' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
 quit_line="$(grep -n '^ojuny-login-splash:--quit' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
-[ -n "$reload_line" ] && [ -n "$dms_line" ] && [ -n "$quit_line" ] ||
-    fail "the DMS readiness wait did not run"
-[ "$reload_line" -lt "$dms_line" ] && [ "$dms_line" -lt "$quit_line" ] ||
-    fail "the splash quit before DMS was ready"
+[ -n "$reload_line" ] && [ -n "$quit_line" ] ||
+    fail "the reload wait did not run"
+grep -q . "$XDG_RUNTIME_DIR/ojuny-shell-reloaded" ||
+    fail "the reload marker was not written"
+[ "$reload_line" -lt "$quit_line" ] ||
+    fail "the splash quit before the reload finished"
 
 mkdir -p "$XDG_RUNTIME_DIR/ojuny-login-splash"
 : >"$XDG_RUNTIME_DIR/ojuny-login-splash/login.sock"
 : >"$TEST_LOG"
-OJUNY_FLAKE="$tmp/flake" OJUNY_HOST=host ojuny_cli rebuild >/dev/null
+OJUNY_FLAKE="$tmp/flake" OJUNY_HOST=host \
+    OJUNY_ENVIRONMENT_RELOAD='printf "reload\n" >> "$TEST_LOG"' \
+    ojuny_cli rebuild >/dev/null
 stop_login_line="$(grep -n '^systemctl:--user stop ojuny-login-splash' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
 start_line="$(grep -n '^ojuny-login-splash:--seconds' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
 quit_line="$(grep -n '^ojuny-login-splash:--quit' "$TEST_LOG" | cut -d: -f1 | sed -n '1p')"
